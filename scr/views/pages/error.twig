@@ -1,0 +1,15 @@
+{% extends "../layouts/base.twig" %}
+
+{% block title %}
+	<title>Erreur</title>
+{% endblock %}
+
+{% block main %}
+	<h1>Erreur</h1>
+	<p>{{ message }}</p>
+	{% if error %}
+		<p>Détails de l'erreur :
+			{{ error.message }}</p>
+	{% endif %}
+	<a href="/">Retour à l'accueil</a>
+{% endblock %}

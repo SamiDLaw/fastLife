@@ -1,0 +1,81 @@
+{% extends "../layouts/base.twig" %}
+
+{% block title %}
+	<title>{{ title }}</title>
+{% endblock %}
+
+{% block style %}
+	<link rel="stylesheet" href="/css/register.css">
+{% endblock %}
+
+{% block main %}
+	<main>
+		<section>
+			<div id="registerMain">
+				<form action="/register" id="register" method="POST">
+					<div class="d1">
+						<h2>Inscription</h2>
+					</div>
+					<div class="d2">
+						<label for="name">Nom</label><br>
+						<input type="text" id="name" name="name" required>
+						{% if error and error.name %}
+							<span class="error">{{ error.name }}</span>
+						{% endif %}
+					</div>
+					<div class="d3">
+						<label for="firstname">Prénom</label><br>
+						<input type="text" id="firstname" name="firstname" required>
+						{% if error and error.firstname %}
+							<span class="error">{{ error.firstname }}</span>
+						{% endif %}
+					</div>
+					<div class="d4">
+						<label for="email">Adresse email</label><br>
+						<input type="email" id="email" name="email" required>
+						{% if error and error.email %}
+							<span class="error">{{ error.email }}</span>
+						{% endif %}
+					</div>
+					<div class="d5">
+						<label for="birthday">Date de naissance</label><br>
+						<input type="date" id="birthday" name="birthday" required>
+						{% if error and error.birthday %}
+							<span class="error">{{ error.birthday }}</span>
+						{% endif %}
+					</div>
+					<div class="d6">
+						<label>Genre</label><br>
+						<input type="radio" id="male" name="gender" value="male" required>
+						<label for="male">Homme</label>
+						<input type="radio" id="female" name="gender" value="female" required>
+						<label for="female">Femme</label>
+						<input type="radio" id="other" name="gender" value="other" required>
+						<label for="other">Autre</label>
+						{% if error and error.gender %}
+							<span class="error">{{ error.gender }}</span>
+						{% endif %}
+					</div>
+					<div class="d7">
+						<label for="password">Mot de passe</label><br>
+						<input type="password" id="password" name="password" required minlength="8">
+						{% if error and error.password %}
+							<span class="error">{{ error.password }}</span>
+						{% endif %}
+					</div>
+					<div class="d8">
+						<label for="confirmPassword">Confirmer votre mot de passe</label><br>
+						<input type="password" name="confirmPassword" id="confirmPassword" required>
+						{% if error and error.confirmPassword %}
+							<span class="error">{{ error.confirmPassword }}</span>
+						{% endif %}
+					</div>
+					<div class="d9">
+						<button type="submit">S'inscrire</button>
+						<!-- Button remains in French -->
+					</div>
+				</form>
+			</div>
+		</section>
+	</main>
+{% endblock %}

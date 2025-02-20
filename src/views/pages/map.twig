@@ -161,27 +161,5 @@
                 floatingMenu.classList.remove('active');
             }
         });
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            try {
-                const response = await fetch('/api/aggregated-data?lat=43.2965&lon=5.3698');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const data = await response.json();
-                if (!data || !data.places || data.places.length === 0) {
-                    console.warn('No places data available for rendering.');
-                    document.getElementById('error-message').textContent = 'Aucun lieu disponible à afficher.';
-                    document.getElementById('error-message').style.display = 'block';
-                    return;
-                }
-                window.places = data.places;
-                initMap();
-            } catch (error) {
-                console.error('Error loading places data:', error);
-                document.getElementById('error-message').textContent = 'Erreur lors du chargement des données. Veuillez réessayer.';
-                document.getElementById('error-message').style.display = 'block';
-            }
-        });
     </script>
 {% endblock %}

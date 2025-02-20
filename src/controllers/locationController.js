@@ -21,16 +21,20 @@ exports.getAggregatedData = async (req, res, next) => {
         res.json(data);
     } catch (error) {
         console.error('Erreur lors de l\'agrégation des données:', error);
-        next(error);
+        res.status(500).json({ error: 'Erreur serveur', places: [] });
     }
 };
 
 exports.searchLocations = async (req, res, next) => {
     try {
-        const { query } = req.query;
-        const results = await openStreetMapService.searchLocations(query);
+        const { q } = req.query;
+        if (!q || q.trim().length === 0) {
+            return res.json({ places: [] });
+        }
+        const results = await openStreetMapService.searchLocations(q.trim());
         res.json(results);
     } catch (error) {
-        next(error);
+        console.error('Erreur lors de la recherche:', error);
+        res.status(500).json({ error: 'Erreur serveur', places: [] });
     }
 };

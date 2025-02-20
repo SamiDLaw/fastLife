@@ -39,14 +39,42 @@ class OpenStreetMapService {
     }
 
     async getAggregatedData(lat, lon) {
-        const places = await this.getPlaces(lat, lon);
-        return { places };
+        try {
+            const places = await this.getPlaces(lat, lon);
+            return { places };
+        } catch (error) {
+            console.error('Erreur lors de la récupération des données agrégées:', error);
+            return { places: [] };
+        }
     }
 
     async searchLocations(query) {
-        const searchUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=10`;
-        const response = await axios.get(searchUrl);
-        return response.data;
+        try {
+            if (!query) {
+                return { places: [] };
+            }
+
+            const searchUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5`;
+            const response = await axios.get(searchUrl, {
+                headers: {
+                    'User-Agent': 'FastLife/1.0'
+                }
+            });
+
+            const places = response.data.map(item => ({
+                name: item.display_name.split(',')[0],
+                type: item.type,
+                latitude: parseFloat(item.lat),
+                longitude: parseFloat(item.lon),
+                rating: null,
+                opening_hours: null
+            }));
+
+            return { places };
+        } catch (error) {
+            console.error('Erreur lors de la recherche:', error);
+            return { places: [] };
+        }
     }
 }
 

@@ -1,191 +1,449 @@
-@import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600&display=swap');
-
-/* Variables pour le thème clair */
+/* Variables globales */
 :root {
-    --primary: #007AFF;
-    --primary-light: #47A3FF;
-    --background: #FFFFFF;
-    --surface: #F5F5F7;
-    --text: #1D1D1F;
-    --text-secondary: #86868B;
-    --border: #E5E5E7;
-    --error: #FF3B30;
-    --success: #34C759;
+    --apple-font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+    --primary-color: #0071e3;
+    --hover-color: #0077ED;
+    --background-color: #ffffff;
+    --background-gradient-1: #f5f5f7;
+    --background-gradient-2: #ffffff;
+    --surface-color: #f5f5f7;
+    --text-color: #1d1d1f;
+    --secondary-text: #86868b;
+    --error-color: #ff3b2f;
+    --success-color: #34c759;
+    --section-spacing: 60px;
+    --transition-speed: 0.5s;
+    --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
-/* Variables pour le thème sombre */
-[data-theme="dark"] {
-    --primary: #0A84FF;
-    --primary-light: #5E9EFF;
-    --background: #000000;
-    --surface: #1C1C1E;
-    --text: #FFFFFF;
-    --text-secondary: #98989D;
-    --border: #38383A;
-    --error: #FF453A;
-    --success: #32D74B;
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #000000;
+        --background-gradient-1: #1c1c1e;
+        --background-gradient-2: #000000;
+        --surface-color: #1c1c1e;
+        --text-color: #ffffff;
+        --secondary-text: #98989d;
+        --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+}
+
+/* Reset et styles de base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 body {
-    font-family: -apple-system, 'SF Pro Display', sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: var(--background);
-    color: var(--text);
+    font-family: var(--apple-font);
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    overflow-x: hidden;
 }
 
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 40px 20px;
-    background-color: var(--background);
+/* Container principal */
+.preferences-container {
+    max-width: 100%;
+    min-height: 100vh;
+    position: relative;
+    overflow: hidden;
 }
 
-h1 {
-    font-size: 48px;
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 40px;
-    text-align: center;
-    letter-spacing: -0.5px;
+/* Progress indicator */
+.progress-indicator {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 100;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.content {
+.progress-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--secondary-text);
+    transition: all 0.3s ease;
+}
+
+.progress-dot.active {
+    background: var(--primary-color);
+    transform: scale(1.2);
+}
+
+/* Question sections */
+.preference-section {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
     display: flex;
     flex-direction: column;
+    justify-content: center;
     align-items: center;
-    gap: 40px;
+    padding: 40px 20px;
+    transition: transform var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1),
+                opacity var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.progress-bar-container {
-    width: 100%;
-    max-width: 600px;
-    height: 6px;
-    background-color: var(--surface);
-    border-radius: 3px;
-    overflow: hidden;
-    margin: 20px auto;
+.preference-section.hidden {
+    opacity: 0;
+    transform: translateX(100%);
+    pointer-events: none;
 }
 
-.progress-bar {
-    width: 100%;
-    height: 100%;
-    background: var(--primary);
-    transition: transform 0.3s ease;
-    transform-origin: left;
-    transform: scaleX(0);
+.preference-section.previous {
+    opacity: 0;
+    transform: translateX(-100%);
+    pointer-events: none;
 }
 
-.preference-section {
-    width: 100%;
+.preference-section.visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* Question content */
+.question-content {
     max-width: 800px;
-    margin: 20px auto;
-    padding: 30px;
-    background-color: var(--surface);
-    border-radius: 20px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.preference-section:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    text-align: center;
 }
 
 .preference-section h2 {
-    font-size: 24px;
-    font-weight: 500;
-    color: var(--text);
-    margin-bottom: 20px;
-    text-align: center;
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, var(--text-color) 0%, var(--primary-color) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: fadeInUp 0.5s ease-out;
 }
 
+.selection-counter {
+    color: var(--secondary-text);
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+    animation: fadeInUp 0.5s ease-out 0.1s backwards;
+}
+
+/* Options grid */
 .options-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 20px;
-    padding: 20px 0;
+    margin: 0 auto;
+    max-width: 800px;
+    animation: fadeInUp 0.5s ease-out 0.2s backwards;
 }
 
+/* Option items */
 .option-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 15px;
-    border-radius: 12px;
-    background-color: white;
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 20px;
+    overflow: hidden;
     cursor: pointer;
-    transition: all 0.3s ease;
-    border: 2px solid var(--border);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateY(0);
 }
 
-.option-image,
-.placeholder-image {
-    width: 100px;
-    height: 100px;
-    border-radius: 12px;
-    object-fit: cover;
-    margin-bottom: 12px;
-    transition: transform 0.3s ease;
+.option-item:hover {
+    transform: translateY(-8px);
 }
 
 .option-item.selected {
-    border-color: var(--primary);
-    background-color: rgba(0, 122, 255, 0.1);
+    transform: translateY(-8px);
 }
 
-.option-item.selected .image-title {
+.option-item::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.8));
+    z-index: 1;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.option-item:hover::before {
+    opacity: 1;
+}
+
+.option-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.option-item:hover .option-image {
+    transform: scale(1.05);
+}
+
+.option-title {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
     color: white;
-}
-
-input[type="checkbox"] {
-    display: none;
-}
-
-.image-title {
-    font-size: 14px;
+    font-size: 1.2rem;
     font-weight: 500;
-    color: var(--text);
-    text-align: center;
-    margin-top: 8px;
+    z-index: 2;
+    text-align: left;
 }
 
-.submit-button {
-    background-color: var(--primary);
+.option-item.selected::after {
+    content: '✓';
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 30px;
+    height: 30px;
+    background: var(--success-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: white;
-    border: none;
-    padding: 16px 32px;
     font-size: 16px;
-    font-weight: 500;
-    border-radius: 25px;
+    z-index: 2;
+    animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Navigation */
+.navigation-hint {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--secondary-text);
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0.8;
+    animation: fadeIn 0.5s ease-out 1s backwards;
+}
+
+.navigation-hint svg {
+    width: 24px;
+    height: 24px;
+    animation: bounce 1.5s infinite;
+}
+
+/* Bouton de validation */
+.submit-button {
+    position: fixed;
+    bottom: 40px;
+    right: 40px;
+    background: var(--primary-color);
+    color: white;
+    padding: 16px 32px;
+    border-radius: 30px;
+    font-size: 1.1rem;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
-    margin-top: 40px;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 100;
 }
 
-.submit-button:disabled {
-    background-color: var(--text-secondary);
-    cursor: not-allowed;
+.submit-button svg {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.3s ease;
 }
 
-.submit-button:not(:disabled):hover {
+.submit-button:hover svg {
+    transform: translateX(4px);
+}
+
+.submit-button.visible {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.submit-button:hover {
+    background: var(--hover-color);
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.submit-button.success {
+    background: var(--success-color);
+    pointer-events: none;
 }
 
 @media (max-width: 768px) {
-    .container {
-        padding: 20px 10px;
+    .submit-button {
+        bottom: 20px;
+        right: 20px;
+        left: 20px;
+        width: calc(100% - 40px);
+        justify-content: center;
+        padding: 14px 20px;
+        font-size: 1rem;
+        transform: translateY(0);
+        opacity: 0;
     }
-  
-    h1 {
-        font-size: 36px;
+
+    .submit-button.visible {
+        opacity: 1;
     }
-  
+}
+
+/* Scroll indicator */
+.scroll-indicator {
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 100;
+}
+
+.scroll-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--secondary-text);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.scroll-dot:hover {
+    transform: scale(1.2);
+}
+
+.scroll-dot.active {
+    background: var(--primary-color);
+    transform: scale(1.2);
+}
+
+@media (max-width: 768px) {
+    .scroll-indicator {
+        display: none;
+    }
+    
+    .navigation-hint {
+        bottom: 90px;
+    }
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0);
+    }
+    to {
+        transform: scale(1);
+    }
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-10px);
+    }
+    60% {
+        transform: translateY(-5px);
+    }
+}
+
+@keyframes successAnimation {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Améliorations mobiles */
+@media (max-width: 768px) {
     .preference-section {
         padding: 20px;
     }
-  
+
+    .question-content {
+        padding: 0 10px;
+    }
+
+    .preference-section h2 {
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+    }
+
+    .selection-counter {
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
     .options-grid {
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 12px;
+    }
+
+    .option-item {
+        aspect-ratio: 16/9;
+        border-radius: 15px;
+    }
+
+    .option-title {
+        font-size: 1rem;
+        bottom: 15px;
+        left: 15px;
+    }
+}
+
+@media (max-width: 768px) {
+    .options-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .preference-section h2 {
+        font-size: 2rem;
+    }
+
+    .option-item {
+        aspect-ratio: 16/9;
     }
 }

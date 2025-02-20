@@ -2,55 +2,114 @@ let map;
 let sidebar;
 let currentMarkers = [];
 let markersVisible = true;
+let isLoading = false;
 
 async function initMap() {
-    // Initialiser la carte en mode sombre
-    map = L.map('map', {
-        center: [43.2965, 5.3698],
-        zoom: 13,
-        zoomControl: true,
-        zoomAnimation: true,
-        markerZoomAnimation: true
-    });
-
-    // Ajouter le fond de carte sombre
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: 'OpenStreetMap'
-    }).addTo(map);
-
-    // Activer la recherche avec la touche Entrée
-    const searchInput = document.getElementById('search-input');
-    searchInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            performSearch();
+    try {
+        // Charger les données avant d'initialiser la carte
+        const response = await fetch('/api/aggregated-data?lat=43.2965&lon=5.3698');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-    });
+        const data = await response.json();
+        if (!data || !data.places || data.places.length === 0) {
+            console.warn('No places data available for rendering.');
+            document.getElementById('error-message').textContent = 'Aucun lieu disponible à afficher.';
+            document.getElementById('error-message').style.display = 'block';
+            return;
+        }
+        window.places = data.places;
 
-    // Ajouter les écouteurs d'événements
-    document.getElementById('search-button').addEventListener('click', performSearch);
-    map.on('moveend', debounce(onMapMoveEnd, 500));
+        // Initialiser la carte
+        map = L.map('map', {
+            center: [43.2965, 5.3698],
+            zoom: 13,
+            zoomControl: true,
+            zoomAnimation: true,
+            markerZoomAnimation: true
+        });
 
-    // Charger les données initiales
-    await loadData(43.2965, 5.3698);
+        // Ajouter le fond de carte
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: 'OpenStreetMap'
+        }).addTo(map);
 
-    sidebar = document.getElementById('sidebar');
+        // Activer la recherche avec la touche Entrée
+        const searchInput = document.getElementById('search-input');
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
 
-    const toggleButton = document.createElement('button');
-    toggleButton.innerHTML = 'Afficher/Masquer les points';
-    toggleButton.className = 'toggle-markers-btn';
-    toggleButton.onclick = toggleMarkers;
-    document.querySelector('.map-container').appendChild(toggleButton);
+        // Ajouter les écouteurs d'événements
+        document.getElementById('search-button').addEventListener('click', performSearch);
 
-    map.on('zoomend', updateMarkersSize);
+        // Initialiser la sidebar
+        sidebar = document.getElementById('sidebar');
+        if (!sidebar) {
+            sidebar = document.createElement('div');
+            sidebar.id = 'sidebar';
+            sidebar.className = 'sidebar';
+            document.body.appendChild(sidebar);
+        }
+
+        // Ajouter les boutons de contrôle
+        const controlsContainer = document.createElement('div');
+        controlsContainer.className = 'map-controls';
+        
+        // Bouton pour charger les marqueurs
+        const loadMarkersButton = document.createElement('button');
+        loadMarkersButton.className = 'control-button load-markers';
+        loadMarkersButton.innerHTML = `
+            <i class="fas fa-map-marker-alt"></i>
+            <span>Charger les lieux</span>
+        `;
+        loadMarkersButton.onclick = loadMarkersInView;
+        
+        // Bouton pour afficher/masquer les marqueurs
+        const toggleButton = document.createElement('button');
+        toggleButton.className = 'control-button toggle-markers';
+        toggleButton.innerHTML = `
+            <i class="fas fa-eye"></i>
+            <span>Afficher/Masquer</span>
+        `;
+        toggleButton.onclick = toggleMarkers;
+
+        controlsContainer.appendChild(loadMarkersButton);
+        controlsContainer.appendChild(toggleButton);
+        document.querySelector('.map-wrapper').appendChild(controlsContainer);
+
+        // Charger les données initiales
+        await loadData(43.2965, 5.3698);
+    } catch (error) {
+        console.error('Error initializing map:', error);
+        showError('Erreur lors du chargement de la carte');
+    }
 }
 
-function debounce(func, wait) {
-    let timeout;
-    return function(...args) {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(this, args), wait);
-    };
+async function loadMarkersInView() {
+    if (isLoading) return;
+    
+    try {
+        isLoading = true;
+        const button = document.querySelector('.load-markers');
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Chargement...';
+
+        const bounds = map.getBounds();
+        const center = bounds.getCenter();
+        await loadData(center.lat, center.lng);
+
+        button.disabled = false;
+        button.innerHTML = '<i class="fas fa-map-marker-alt"></i> Charger les lieux';
+    } catch (error) {
+        console.error('Error loading markers:', error);
+        showError('Erreur lors du chargement des lieux');
+    } finally {
+        isLoading = false;
+    }
 }
 
 function toggleMarkers() {
@@ -63,13 +122,15 @@ function toggleMarkers() {
         }
     });
     
-    const button = document.querySelector('.toggle-markers-btn');
+    const button = document.querySelector('.toggle-markers');
     button.innerHTML = markersVisible ? 
-        'Afficher/Masquer les points' : 
-        'Afficher les points';
+        '<i class="fas fa-eye"></i> <span>Afficher/Masquer</span>' : 
+        '<i class="fas fa-eye-slash"></i> <span>Afficher/Masquer</span>';
 }
 
 function updateMarkersSize() {
+    if (!markersVisible) return;
+    
     const zoom = map.getZoom();
     const size = Math.max(20, Math.min(40, zoom * 2));
     
@@ -82,46 +143,43 @@ function updateMarkersSize() {
 
 async function loadData(lat, lon) {
     try {
-        const response = await fetch(`/api/aggregated-data?lat=${lat}&lon=${lon}`);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const data = await response.json();
-
-        // Nettoyer les marqueurs existants
         clearMarkers();
-
-        // Ajouter les nouveaux marqueurs
-        if (data.places && data.places.length > 0) {
-            data.places.forEach(place => {
-                const marker = addMarker(place);
-                if (marker) currentMarkers.push(marker);
-            });
+        
+        const response = await fetch(`/api/aggregated-data?lat=${lat}&lon=${lon}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        if (!data || !data.places || data.places.length === 0) {
+            showError('Aucun lieu trouvé dans cette zone');
+            return;
         }
 
-        // Ajuster la vue si nécessaire
-        if (currentMarkers.length > 0) {
-            const group = new L.featureGroup(currentMarkers);
-            map.fitBounds(group.getBounds(), { padding: [50, 50] });
-        }
+        data.places.forEach(place => {
+            const marker = addMarker(place);
+            currentMarkers.push(marker);
+        });
+
+        updateMarkersSize();
     } catch (error) {
-        console.error('Erreur lors du chargement des données:', error);
+        console.error('Error loading data:', error);
         showError('Erreur lors du chargement des données');
     }
 }
 
 function addMarker(place) {
-    if (!place.latitude || !place.longitude || !place.name) return null;
-
-    const icon = L.divIcon({
-        className: 'custom-marker',
-        html: `<div class="marker-pin" style="background-color: ${getMarkerColor(place.type)}"></div>`,
-        iconSize: [30, 30],
-        iconAnchor: [15, 30],
-        popupAnchor: [0, -30]
-    });
-
-    const marker = L.marker([place.latitude, place.longitude], { icon })
-        .bindPopup(createPopupContent(place))
-        .on('click', () => showPlaceDetails(place));
+    const marker = L.marker([place.latitude, place.longitude], {
+        icon: L.divIcon({
+            className: 'custom-marker',
+            html: `<div class="marker-pin" style="background-color: ${getMarkerColor(place.type)}"></div>`,
+            iconSize: [30, 30],
+            iconAnchor: [15, 30],
+            popupAnchor: [0, -30]
+        })
+    })
+    .bindPopup(createPopupContent(place))
+    .on('click', () => showPlaceDetails(place));
 
     if (markersVisible) {
         marker.addTo(map);
@@ -152,14 +210,29 @@ function createPopupContent(place) {
 }
 
 function showPlaceDetails(place) {
-    const placeDetails = document.getElementById('place-details');
-    placeDetails.innerHTML = `
-        <h2>${place.name}</h2>
-        <p class="place-type">${place.type || 'Inconnu'}</p>
-        ${place.rating ? `<p class="place-rating">Note: ${place.rating}/5</p>` : ''}
-        ${place.opening_hours ? `<p class="place-hours">Horaires: ${place.opening_hours}</p>` : ''}
-        <p class="place-coordinates">Coordonnées: ${place.latitude.toFixed(4)}, ${place.longitude.toFixed(4)}</p>
+    if (!sidebar) {
+        sidebar = document.createElement('div');
+        sidebar.id = 'sidebar';
+        sidebar.className = 'sidebar';
+        document.body.appendChild(sidebar);
+    }
+
+    const content = `
+        <div class="sidebar-header">
+            <button class="close-sidebar" onclick="document.getElementById('sidebar').classList.remove('active')">&times;</button>
+        </div>
+        <div class="sidebar-content">
+            <div class="place-info">
+                <h2>${place.name}</h2>
+                <p class="place-type">${place.type || 'Inconnu'}</p>
+                ${place.rating ? `<p class="place-rating">Note: ${place.rating}/5</p>` : ''}
+                ${place.opening_hours ? `<p class="place-hours">Horaires: ${place.opening_hours}</p>` : ''}
+                <p class="place-coordinates">Coordonnées: ${place.latitude.toFixed(4)}, ${place.longitude.toFixed(4)}</p>
+            </div>
+        </div>
     `;
+
+    sidebar.innerHTML = content;
     sidebar.classList.add('active');
 }
 
@@ -173,35 +246,35 @@ async function performSearch() {
     if (!searchQuery.trim()) return;
 
     try {
-        const response = await fetch(`/api/search?query=${encodeURIComponent(searchQuery)}`);
-        if (!response.ok) throw new Error('Erreur réseau');
-        const results = await response.json();
-        
-        if (results.length > 0) {
-            const firstResult = results[0];
-            map.setView([firstResult.lat, firstResult.lon], 13);
-            await loadData(firstResult.lat, firstResult.lon);
+        const response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (data.places && data.places.length > 0) {
+            const place = data.places[0];
+            map.setView([place.latitude, place.longitude], 15);
+            await loadData(place.latitude, place.longitude);
         } else {
-            showError('Aucun résultat trouvé pour cette recherche');
+            showError('Aucun résultat trouvé');
         }
     } catch (error) {
-        console.error('Erreur lors de la recherche:', error);
+        console.error('Error performing search:', error);
         showError('Erreur lors de la recherche');
     }
 }
 
 function showError(message) {
-    const errorElement = document.getElementById('error-message');
-    errorElement.textContent = message;
-    errorElement.style.display = 'block';
-    setTimeout(() => {
-        errorElement.style.display = 'none';
-    }, 5000);
+    const errorDiv = document.getElementById('error-message');
+    if (errorDiv) {
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+        setTimeout(() => {
+            errorDiv.style.display = 'none';
+        }, 3000);
+    }
 }
 
-async function onMapMoveEnd() {
-    const center = map.getCenter();
-    await loadData(center.lat, center.lng);
-}
-
+// Initialisation
 document.addEventListener('DOMContentLoaded', initMap);

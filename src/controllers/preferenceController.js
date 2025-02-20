@@ -21,9 +21,15 @@ exports.getPreferencesForm = async (req, res) => {
             }
         });
 
-        const questions = await prisma.question.findMany({
+        // Récupérer toutes les questions avec leurs options
+        const allQuestions = await prisma.question.findMany({
             include: {
-                options: true,
+                options: {
+                    take: 3, // Limite à 3 options par question
+                    orderBy: {
+                        id: 'asc'
+                    }
+                },
                 category: true,
             },
             orderBy: {
@@ -32,7 +38,7 @@ exports.getPreferencesForm = async (req, res) => {
         });
 
         // Ajouter les images pour chaque option
-        const questionsWithImages = questions.map(question => ({
+        const questionsWithImages = allQuestions.map(question => ({
             ...question,
             options: question.options.map(option => ({
                 ...option,
@@ -53,54 +59,79 @@ exports.getPreferencesForm = async (req, res) => {
 
 exports.savePreferences = async (req, res) => {
     const userId = req.session.userId;
-    const preferences = req.body.preferences;
-
     if (!userId) {
-        return res.status(401).json({ 
-            success: false, 
-            message: "Utilisateur non connecté" 
-        });
-    }
-
-    if (!preferences || !Array.isArray(preferences) || preferences.length === 0) {
-        return res.status(400).json({ 
-            success: false, 
-            message: "Veuillez sélectionner au moins une préférence par catégorie" 
-        });
+        return res.status(401).json({ success: false, message: "Non authentifié" });
     }
 
     try {
+        const { preferences } = req.body;
+        
+        if (!Array.isArray(preferences)) {
+            return res.status(400).json({
+                success: false,
+                message: "Format de données invalide"
+            });
+        }
+
+        // Convertir tous les IDs en entiers
+        const preferenceIds = preferences.map(id => parseInt(id)).filter(id => !isNaN(id));
+
+        // Récupérer toutes les questions pour la validation
+        const questions = await prisma.question.findMany({
+            include: {
+                options: true
+            }
+        });
+
+        // Grouper les préférences par question
+        const preferencesByQuestion = new Map();
+        for (const optionId of preferenceIds) {
+            const question = questions.find(q => q.options.some(o => o.id === optionId));
+            if (question) {
+                if (!preferencesByQuestion.has(question.id)) {
+                    preferencesByQuestion.set(question.id, []);
+                }
+                preferencesByQuestion.get(question.id).push(optionId);
+            }
+        }
+
+        // Valider que chaque question n'a pas plus de 3 choix
+        for (const [questionId, questionPreferences] of preferencesByQuestion) {
+            if (questionPreferences.length > 3) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Vous ne pouvez sélectionner que 3 options maximum par question"
+                });
+            }
+        }
+
         // Supprimer les anciennes préférences
         await prisma.preference.deleteMany({
-            where: { userId: userId },
+            where: { userId }
         });
 
         // Créer les nouvelles préférences
-        const preferenceData = preferences.map(optionId => ({
-            userId: userId,
-            optionId: parseInt(optionId),
-        }));
+        if (preferenceIds.length > 0) {
+            await prisma.preference.createMany({
+                data: preferenceIds.map(optionId => ({
+                    userId,
+                    optionId
+                }))
+            });
+        }
 
-        await prisma.preference.createMany({
-            data: preferenceData,
-        });
-
-        // Mettre à jour le statut des préférences de l'utilisateur
+        // Marquer que l'utilisateur a défini ses préférences
         await prisma.user.update({
             where: { id: userId },
             data: { preferencesSet: true }
         });
 
-        res.json({ 
-            success: true, 
-            message: "Préférences enregistrées avec succès",
-            redirect: "/map"
-        });
+        res.json({ success: true });
     } catch (error) {
-        console.error("Erreur lors de l'enregistrement des préférences :", error);
-        res.status(500).json({ 
-            success: false, 
-            message: "Erreur lors de l'enregistrement des préférences" 
+        console.error("Erreur lors de la sauvegarde des préférences:", error);
+        res.status(500).json({
+            success: false,
+            message: "Une erreur est survenue lors de la sauvegarde des préférences"
         });
     }
 };

@@ -4,6 +4,7 @@ let currentMarkers = [];
 let markersVisible = true;
 let isLoading = false;
 let activeFilter = 'all';
+let userLocationMarker = null;
 
 async function initMap() {
     try {
@@ -46,15 +47,10 @@ async function initMap() {
 
         // Ajouter les écouteurs d'événements
         document.getElementById('search-button').addEventListener('click', performSearch);
+        document.getElementById('location-button').addEventListener('click', getUserLocation);
 
         // Initialiser la sidebar
         sidebar = document.getElementById('sidebar');
-        if (!sidebar) {
-            sidebar = document.createElement('div');
-            sidebar.id = 'sidebar';
-            sidebar.className = 'sidebar';
-            document.body.appendChild(sidebar);
-        }
 
         // Ajouter les boutons de contrôle
         const controlsContainer = document.createElement('div');
@@ -258,22 +254,35 @@ function filterMarkers() {
 
 async function performSearch() {
     const searchInput = document.getElementById('search-input');
-    const searchTerm = searchInput.value.trim().toLowerCase();
+    const searchTerm = searchInput.value.trim();
     
     if (!searchTerm) {
         filterMarkers();
         return;
     }
 
-    currentMarkers.forEach(marker => {
-        const popupContent = marker.getPopup().getContent().toLowerCase();
-        if (popupContent.includes(searchTerm) && 
-            (activeFilter === 'all' || marker.itemType === activeFilter)) {
-            marker.getElement().style.display = '';
+    try {
+        // Utiliser Nominatim pour la géocodification
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchTerm)}`);
+        const data = await response.json();
+
+        if (data && data.length > 0) {
+            const location = data[0];
+            const lat = parseFloat(location.lat);
+            const lon = parseFloat(location.lon);
+
+            // Centrer la carte sur la nouvelle position
+            map.setView([lat, lon], 13);
+
+            // Charger les données pour la nouvelle position
+            await loadData(lat, lon);
         } else {
-            marker.getElement().style.display = 'none';
+            showError('Ville non trouvée. Veuillez réessayer.');
         }
-    });
+    } catch (error) {
+        console.error('Erreur lors de la recherche :', error);
+        showError('Une erreur est survenue lors de la recherche. Veuillez réessayer.');
+    }
 }
 
 function clearMarkers() {
@@ -318,6 +327,111 @@ function showPlaceDetails(place) {
 
     sidebar.innerHTML = content;
     sidebar.classList.add('active');
+}
+
+async function getUserLocation() {
+    // Afficher un message de chargement
+    const loadingMessage = document.createElement('div');
+    loadingMessage.id = 'location-loading';
+    loadingMessage.className = 'loading-message';
+    loadingMessage.innerHTML = `
+        <div class="spinner"></div>
+        <span>Recherche de votre position...</span>
+    `;
+    document.body.appendChild(loadingMessage);
+
+    try {
+        // Essayer d'abord la géolocalisation du navigateur
+        if (navigator.geolocation) {
+            try {
+                const position = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(
+                        resolve,
+                        reject,
+                        {
+                            enableHighAccuracy: false,
+                            timeout: 10000,
+                            maximumAge: 300000
+                        }
+                    );
+                });
+
+                handleSuccessfulLocation(position.coords.latitude, position.coords.longitude, 'GPS');
+                return;
+            } catch (error) {
+                console.log('Géolocalisation du navigateur échouée, utilisation de l\'IP...');
+            }
+        }
+
+        // Si la géolocalisation du navigateur échoue, utiliser l'IP
+        const response = await fetch('https://ipapi.co/json/');
+        const data = await response.json();
+        
+        if (data.latitude && data.longitude) {
+            handleSuccessfulLocation(data.latitude, data.longitude, 'IP');
+        } else {
+            throw new Error('Impossible de déterminer votre position');
+        }
+
+    } catch (error) {
+        console.error('Erreur de géolocalisation:', error);
+        showError('Impossible de déterminer votre position. Veuillez réessayer ou entrer une ville manuellement.');
+    } finally {
+        // Supprimer le message de chargement
+        const loadingMessage = document.getElementById('location-loading');
+        if (loadingMessage) {
+            loadingMessage.remove();
+        }
+    }
+}
+
+async function handleSuccessfulLocation(latitude, longitude, method) {
+    // Centrer la carte sur la position
+    map.setView([latitude, longitude], 15);
+
+    // Supprimer l'ancien marqueur de position s'il existe
+    if (userLocationMarker) {
+        map.removeLayer(userLocationMarker);
+    }
+
+    // Créer le marqueur principal
+    userLocationMarker = L.circleMarker([latitude, longitude], {
+        radius: 8,
+        fillColor: '#007AFF',
+        fillOpacity: 1,
+        color: '#FFFFFF',
+        weight: 2,
+        opacity: 1
+    }).addTo(map);
+
+    // Ajouter l'effet de halo
+    const halo = L.circleMarker([latitude, longitude], {
+        radius: 16,
+        fillColor: '#007AFF',
+        fillOpacity: 0.2,
+        color: 'transparent',
+        className: 'halo-effect'
+    }).addTo(map);
+
+    // Ajouter l'effet de radar
+    const radar = L.circleMarker([latitude, longitude], {
+        radius: 30,
+        fillColor: '#007AFF',
+        fillOpacity: 0.1,
+        color: 'transparent',
+        className: 'radar-effect'
+    }).addTo(map);
+
+    // Ajouter une popup
+    userLocationMarker.bindPopup(`
+        <div class="location-popup">
+            <strong>Votre position</strong><br>
+            <span class="location-method">(Localisé par ${method})</span>
+        </div>
+    `).openPopup();
+
+    // Charger les données pour la nouvelle position
+    await loadData(latitude, longitude);
 }
 
 // Initialisation

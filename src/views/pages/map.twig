@@ -6,7 +6,7 @@
 
 {% block style %}
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
-    <link rel="stylesheet" href="/css/map.css"/>
+    <link rel="stylesheet" href="/css/map.css?v={{ 'now'|date('YmdHis') }}"/>
 {% endblock %}
 
 {% block main %}
@@ -25,6 +25,9 @@
 
         <!-- Boutons de contrôle -->
         <div class="floating-controls">
+            <button class="control-button" id="location-button" title="Ma position">
+                <i class="fas fa-location-arrow"></i>
+            </button>
             <button class="control-button" id="theme-toggle" title="Changer le thème">
                 <i class="fas fa-moon"></i>
             </button>
@@ -111,7 +114,7 @@
 
 {% block script %}
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script src="/js/map.js"></script>
+    <script src="/js/map.js?v={{ 'now'|date('YmdHis') }}"></script>
     <script>
         // Détecter le thème système
         function getSystemTheme() {

@@ -2,30 +2,50 @@ const axios = require('axios');
 
 class OpenStreetMapService {
     async getPlaces(lat, lon) {
-        const overpassUrl = `https://overpass-api.de/api/interpreter?data=[out:json];(node["amenity"="restaurant"](around:1000,${lat},${lon});node["tourism"](around:1000,${lat},${lon}););out;`;
+        const overpassUrl = `https://overpass-api.de/api/interpreter?data=[out:json];(
+            node["amenity"="restaurant"](around:1000,${lat},${lon});
+            node["tourism"="hotel"](around:1000,${lat},${lon});
+            node["leisure"](around:1000,${lat},${lon});
+            node["sport"](around:1000,${lat},${lon});
+            node["tourism"~"museum|attraction|viewpoint"](around:1000,${lat},${lon});
+        );out;`;
+        
         const response = await axios.get(overpassUrl);
         
         // Transformer et filtrer les résultats
         const places = response.data.elements
-            .filter(element => element.tags && element.tags.name) // Filtrer les lieux sans nom
+            .filter(element => element.tags && element.tags.name)
             .map(element => ({
                 name: element.tags.name,
-                type: element.tags.amenity || element.tags.tourism || 'Inconnu',
+                type: this._getPlaceType(element.tags),
                 latitude: element.lat,
                 longitude: element.lon,
                 rating: element.tags.rating || null,
                 cuisine: element.tags.cuisine || null,
-                opening_hours: element.tags.opening_hours || null
+                opening_hours: element.tags.opening_hours || null,
+                description: element.tags.description || null,
+                website: element.tags.website || null,
+                phone: element.tags.phone || element.tags['contact:phone'] || null
             }))
             .sort((a, b) => {
-                // Trier par type et présence d'informations supplémentaires
                 const scoreA = this._calculateRelevanceScore(a);
                 const scoreB = this._calculateRelevanceScore(b);
                 return scoreB - scoreA;
             })
-            .slice(0, 10); // Limiter à 10 résultats
+            .slice(0, 20); // Augmenté à 20 résultats vu qu'on a plus de types
 
         return places;
+    }
+
+    _getPlaceType(tags) {
+        if (tags.amenity === 'restaurant') return 'restaurant';
+        if (tags.tourism === 'hotel') return 'hotel';
+        if (tags.tourism === 'museum') return 'museum';
+        if (tags.tourism === 'attraction') return 'attraction';
+        if (tags.tourism === 'viewpoint') return 'viewpoint';
+        if (tags.leisure) return `activity-${tags.leisure}`;
+        if (tags.sport) return `sport-${tags.sport}`;
+        return 'other';
     }
 
     _calculateRelevanceScore(place) {
@@ -78,4 +98,4 @@ class OpenStreetMapService {
     }
 }
 
-module.exports = new OpenStreetMapService();
+module.exports = OpenStreetMapService;

@@ -582,10 +582,6 @@ body {
     overflow-y: auto;
 }
 
-.sidebar.active {
-    right: 0;
-}
-
 .sidebar-header {
     padding: 20px;
     border-bottom: 1px solid var(--border);
@@ -650,6 +646,56 @@ body {
     font-size: 0.9em;
     color: var(--text-secondary);
 }
+
+/* Styles pour les filtres de catégories */
+.category-filters {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    overflow-x: auto;
+    padding: 5px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.filter-button {
+    background: var(--surface-transparent);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text);
+    padding: 8px 15px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    white-space: nowrap;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.filter-button i {
+    font-size: 1rem;
+}
+
+.filter-button:hover {
+    background: var(--surface);
+    transform: translateY(-1px);
+}
+
+.filter-button.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+/* Styles des marqueurs par catégorie */
+.marker-restaurant { color: #FF5722; }
+.marker-hotel { color: #2196F3; }
+.marker-cultural { color: #9C27B0; }
+.marker-nature { color: #4CAF50; }
+.marker-sport { color: #FF9800; }
+.marker-entertainment { color: #E91E63; }
+.marker-event { color: #F44336; }
 
 /* Media Queries */
 @media (max-width: 768px) {

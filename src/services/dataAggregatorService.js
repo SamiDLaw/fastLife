@@ -1,98 +1,122 @@
-const fetch = require('node-fetch');
-const NodeCache = require('node-cache');
-const cache = new NodeCache({ stdTTL: 600 }); // Cache de 10 minutes
+const OpenStreetMapService = require('./openStreetMapService');
+const PredictHQService = require('./predictHQService');
+const FoursquareService = require('./foursquareService');
 
-// Fonction pour récupérer les données depuis OpenStreetMap Overpass API
-async function getPlacesFromOSM(lat, lon, type) {
-    const cacheKey = `osm_${lat}_${lon}_${type}`;
-    const cachedData = cache.get(cacheKey);
-    if (cachedData) return cachedData;
-
-    const query = `
-    [out:json];
-    (
-        node["${type}"](around:5000,${lat},${lon});
-        way["${type}"](around:5000,${lat},${lon});
-        relation["${type}"](around:5000,${lat},${lon});
-    );
-    out body;
-    `;
-
-    try {
-        const response = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const data = await response.json();
-        const places = data.elements.map(element => ({
-            name: element.tags.name || 'Inconnu',
-            type,
-            latitude: element.lat || (element.center && element.center.lat),
-            longitude: element.lon || (element.center && element.center.lon)
-        })).filter(place => place.latitude && place.longitude); // Filtrer les éléments sans coordonnées
-
-        cache.set(cacheKey, places);
-        return places;
-    } catch (error) {
-        console.error(`Erreur lors de la récupération des données OSM pour ${type}:`, error);
-        throw error;
+class DataAggregatorService {
+    constructor() {
+        this.osmService = new OpenStreetMapService();
+        this.predictHQService = new PredictHQService();
+        this.foursquareService = new FoursquareService();
     }
-}
 
-// Fonction pour récupérer les événements depuis PredictHQ
-async function getEventsFromPredictHQ(lat, lon) {
-    const apiKey = process.env.PREDICTHQ_API_KEY;
-    if (!apiKey) throw new Error('Clé API PredictHQ non définie');
+    async getAggregatedData(lat, lon) {
+        try {
+            // Lancer toutes les requêtes en parallèle
+            const [osmPlaces, fsqPlaces, events] = await Promise.all([
+                this.getPlacesFromOSM(lat, lon),
+                this.getPlacesFromFoursquare(lat, lon),
+                this.getEventsFromPredictHQ(lat, lon)
+            ]);
 
-    const url = `https://api.predicthq.com/v1/events/?within=50km@${lat},${lon}`;
-    try {
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${apiKey}`
+            // Fusionner et dédupliquer les résultats
+            const places = this._mergePlaces(osmPlaces, fsqPlaces);
+
+            return {
+                places: places,
+                events: events
+            };
+        } catch (error) {
+            console.error('Error in data aggregation:', error);
+            throw error;
+        }
+    }
+
+    async getPlacesFromOSM(lat, lon) {
+        try {
+            const places = await this.osmService.getPlaces(lat, lon);
+            return places.map(place => ({
+                ...place,
+                source: 'osm'
+            }));
+        } catch (error) {
+            console.error('Error fetching OSM data:', error);
+            return [];
+        }
+    }
+
+    async getPlacesFromFoursquare(lat, lon) {
+        try {
+            const categories = [
+                FoursquareService.CATEGORIES.HOTEL,
+                FoursquareService.CATEGORIES.RESTAURANT,
+                FoursquareService.CATEGORIES.CULTURAL,
+                FoursquareService.CATEGORIES.NATURE,
+                FoursquareService.CATEGORIES.SPORTS,
+                FoursquareService.CATEGORIES.ENTERTAINMENT
+            ];
+
+            const places = await this.foursquareService.searchPlaces(lat, lon, categories);
+            return places.map(place => ({
+                ...place,
+                source: 'foursquare'
+            }));
+        } catch (error) {
+            console.error('Error fetching Foursquare data:', error);
+            return [];
+        }
+    }
+
+    async getEventsFromPredictHQ(lat, lon) {
+        try {
+            return await this.predictHQService.getEvents();
+        } catch (error) {
+            console.error('Error fetching PredictHQ data:', error);
+            return [];
+        }
+    }
+
+    _mergePlaces(osmPlaces, fsqPlaces) {
+        const allPlaces = [...osmPlaces, ...fsqPlaces];
+        
+        // Regrouper les lieux par nom similaire
+        const groupedPlaces = allPlaces.reduce((acc, place) => {
+            const key = this._normalizeString(place.name);
+            if (!acc[key]) {
+                acc[key] = [];
             }
+            acc[key].push(place);
+            return acc;
+        }, {});
+
+        // Fusionner les données pour chaque lieu
+        return Object.values(groupedPlaces).map(places => {
+            if (places.length === 1) return places[0];
+
+            // Prendre les meilleures données disponibles
+            const mergedPlace = {
+                name: places[0].name,
+                type: places[0].type,
+                latitude: places[0].latitude,
+                longitude: places[0].longitude,
+                rating: places.find(p => p.rating)?.rating || null,
+                description: places.find(p => p.description)?.description || null,
+                opening_hours: places.find(p => p.opening_hours)?.opening_hours || null,
+                website: places.find(p => p.website)?.website || null,
+                phone: places.find(p => p.phone)?.phone || null,
+                address: places.find(p => p.address)?.address || null,
+                sources: places.map(p => p.source).join(',')
+            };
+
+            return mergedPlace;
         });
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const data = await response.json();
-        return data.results.map(event => ({
-            name: event.title,
-            type: 'EVENT',
-            latitude: event.location[1], // PredictHQ utilise [lon, lat]
-            longitude: event.location[0],
-            date: event.start
-        }));
-    } catch (error) {
-        console.error('Erreur lors de la récupération des événements PredictHQ:', error);
-        throw error;
+    }
+
+    _normalizeString(str) {
+        return str.toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9]/g, '');
     }
 }
 
-// Fonction principale pour agréger les données
-async function getAggregatedData(lat, lon) {
-    const cacheKey = `aggregated_data_${lat}_${lon}`;
-    const cachedData = cache.get(cacheKey);
-    if (cachedData) {
-        return cachedData;
-    }
-
-    try {
-        const [hotels, restaurants, activities, events] = await Promise.all([
-            getPlacesFromOSM(lat, lon, 'tourism=hotel'),
-            getPlacesFromOSM(lat, lon, 'amenity=restaurant'),
-            getPlacesFromOSM(lat, lon, 'tourism=attraction'),
-            getEventsFromPredictHQ(lat, lon)
-        ]);
-
-        const aggregatedData = {
-            places: [...hotels, ...restaurants, ...activities],
-            events
-        };
-        cache.set(cacheKey, aggregatedData);
-        return aggregatedData;
-    } catch (error) {
-        console.error('Erreur lors de l\'agrégation des données:', error);
-        throw error;
-    }
-}
-
-module.exports = {
-    getAggregatedData
-};
+module.exports = DataAggregatorService;

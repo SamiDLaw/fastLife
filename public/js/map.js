@@ -3,6 +3,7 @@ let sidebar;
 let currentMarkers = [];
 let markersVisible = true;
 let isLoading = false;
+let activeFilter = 'all';
 
 async function initMap() {
     try {
@@ -83,6 +84,17 @@ async function initMap() {
 
         // Charger les données initiales
         await loadData(43.2965, 5.3698);
+
+        // Gestionnaire d'événements pour les filtres
+        document.querySelectorAll('.filter-button').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.filter-button').forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                activeFilter = button.dataset.type;
+                filterMarkers();
+            });
+        });
+
     } catch (error) {
         console.error('Error initializing map:', error);
         showError('Erreur lors du chargement de la carte');
@@ -162,6 +174,7 @@ async function loadData(lat, lon) {
         });
 
         updateMarkersSize();
+        filterMarkers();
     } catch (error) {
         console.error('Error loading data:', error);
         showError('Erreur lors du chargement des données');
@@ -171,8 +184,8 @@ async function loadData(lat, lon) {
 function addMarker(place) {
     const marker = L.marker([place.latitude, place.longitude], {
         icon: L.divIcon({
-            className: 'custom-marker',
-            html: `<div class="marker-pin" style="background-color: ${getMarkerColor(place.type)}"></div>`,
+            className: `custom-marker marker-${place.type}`,
+            html: `<i class="${getMarkerIcon(place.type)}"></i>`,
             iconSize: [30, 30],
             iconAnchor: [15, 30],
             popupAnchor: [0, -30]
@@ -185,28 +198,98 @@ function addMarker(place) {
         marker.addTo(map);
     }
 
+    marker.itemType = place.type;
+    
     return marker;
 }
 
-function getMarkerColor(type) {
-    const colors = {
-        restaurant: '#FF9500',
-        hotel: '#5856D6',
-        tourism: '#34C759',
-        default: '#007AFF'
+function getMarkerIcon(type) {
+    const icons = {
+        restaurant: 'fas fa-utensils',
+        hotel: 'fas fa-bed',
+        cultural: 'fas fa-landmark',
+        nature: 'fas fa-tree',
+        sport: 'fas fa-running',
+        entertainment: 'fas fa-ticket-alt',
+        other: 'fas fa-map-marker-alt'
     };
-    return colors[type.toLowerCase()] || colors.default;
+
+    return icons[type] || icons.other;
 }
 
 function createPopupContent(place) {
+    const rating = place.rating ? `<div class="rating">★ ${place.rating.toFixed(1)}/5</div>` : '';
+    const address = place.address ? `<div class="address">${place.address}</div>` : '';
+    const description = place.description ? `<div class="description">${place.description}</div>` : '';
+    
     return `
-        <div class="place-popup">
+        <div class="popup-content">
             <h3>${place.name}</h3>
-            <p>${place.type || 'Inconnu'}</p>
-            ${place.rating ? `<p>Note: ${place.rating}/5</p>` : ''}
-            ${place.opening_hours ? `<p>Horaires: ${place.opening_hours}</p>` : ''}
+            <div class="type">${formatType(place.type)}</div>
+            ${rating}
+            ${address}
+            ${description}
         </div>
     `;
+}
+
+function formatType(type) {
+    const types = {
+        restaurant: 'Restaurant',
+        hotel: 'Hôtel',
+        cultural: 'Culture',
+        nature: 'Nature',
+        sport: 'Sport',
+        entertainment: 'Loisirs',
+        other: 'Autre'
+    };
+    return types[type] || 'Autre';
+}
+
+function filterMarkers() {
+    currentMarkers.forEach(marker => {
+        if (activeFilter === 'all' || marker.itemType === activeFilter) {
+            marker.getElement().style.display = '';
+        } else {
+            marker.getElement().style.display = 'none';
+        }
+    });
+}
+
+async function performSearch() {
+    const searchInput = document.getElementById('search-input');
+    const searchTerm = searchInput.value.trim().toLowerCase();
+    
+    if (!searchTerm) {
+        filterMarkers();
+        return;
+    }
+
+    currentMarkers.forEach(marker => {
+        const popupContent = marker.getPopup().getContent().toLowerCase();
+        if (popupContent.includes(searchTerm) && 
+            (activeFilter === 'all' || marker.itemType === activeFilter)) {
+            marker.getElement().style.display = '';
+        } else {
+            marker.getElement().style.display = 'none';
+        }
+    });
+}
+
+function clearMarkers() {
+    currentMarkers.forEach(marker => marker.remove());
+    currentMarkers = [];
+}
+
+function showError(message) {
+    const errorDiv = document.getElementById('error-message');
+    if (errorDiv) {
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+        setTimeout(() => {
+            errorDiv.style.display = 'none';
+        }, 3000);
+    }
 }
 
 function showPlaceDetails(place) {
@@ -224,9 +307,10 @@ function showPlaceDetails(place) {
         <div class="sidebar-content">
             <div class="place-info">
                 <h2>${place.name}</h2>
-                <p class="place-type">${place.type || 'Inconnu'}</p>
+                <p class="place-type">${formatType(place.type)}</p>
                 ${place.rating ? `<p class="place-rating">Note: ${place.rating}/5</p>` : ''}
-                ${place.opening_hours ? `<p class="place-hours">Horaires: ${place.opening_hours}</p>` : ''}
+                ${place.address ? `<p class="place-address">${place.address}</p>` : ''}
+                ${place.description ? `<p class="place-description">${place.description}</p>` : ''}
                 <p class="place-coordinates">Coordonnées: ${place.latitude.toFixed(4)}, ${place.longitude.toFixed(4)}</p>
             </div>
         </div>
@@ -234,46 +318,6 @@ function showPlaceDetails(place) {
 
     sidebar.innerHTML = content;
     sidebar.classList.add('active');
-}
-
-function clearMarkers() {
-    currentMarkers.forEach(marker => map.removeLayer(marker));
-    currentMarkers = [];
-}
-
-async function performSearch() {
-    const searchQuery = document.getElementById('search-input').value;
-    if (!searchQuery.trim()) return;
-
-    try {
-        const response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        if (data.places && data.places.length > 0) {
-            const place = data.places[0];
-            map.setView([place.latitude, place.longitude], 15);
-            await loadData(place.latitude, place.longitude);
-        } else {
-            showError('Aucun résultat trouvé');
-        }
-    } catch (error) {
-        console.error('Error performing search:', error);
-        showError('Erreur lors de la recherche');
-    }
-}
-
-function showError(message) {
-    const errorDiv = document.getElementById('error-message');
-    if (errorDiv) {
-        errorDiv.textContent = message;
-        errorDiv.style.display = 'block';
-        setTimeout(() => {
-            errorDiv.style.display = 'none';
-        }, 3000);
-    }
 }
 
 // Initialisation

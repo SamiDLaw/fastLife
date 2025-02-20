@@ -1,10 +1,14 @@
 const axios = require('axios');
 
 class PredictHQService {
+  constructor() {
+    this.apiKey = process.env.PREDICTHQ_API_KEY;
+  }
+
   async getEvents() {
     const response = await axios.get(`https://api.predicthq.com/v1/events/`, {
       headers: {
-        'Authorization': `Bearer rgOxVTpbvpivV52OdNiYs78UgVMQX4rX5J3rJUHG`
+        'Authorization': `Bearer ${this.apiKey}`
       }
     });
     return response.data.results;
@@ -13,11 +17,11 @@ class PredictHQService {
   async getUpcomingEvents() {
     const response = await axios.get(`https://api.predicthq.com/v1/events/?start=2024-12-01`, {
       headers: {
-        'Authorization': `Bearer rgOxVTpbvpivV52OdNiYs78UgVMQX4rX5J3rJUHG`
+        'Authorization': `Bearer ${this.apiKey}`
       }
     });
     return response.data.results;
   }
 }
 
-module.exports = new PredictHQService();
+module.exports = PredictHQService;

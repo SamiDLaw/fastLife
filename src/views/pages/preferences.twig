@@ -1,0 +1,66 @@
+<!-- scr/views/pages/preferences.twig -->
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if isNewUser %}Complétez votre profil{% else %}Modifiez vos préférences{% endif %}</title>
+    <link rel="stylesheet" href="/css/preferences.css">
+</head>
+<body>
+    <div class="preferences-container">
+        <div class="header">
+            <h1>{% if isNewUser %}DÉCRIS MOI TON UNIVERS !{% else %}Modifiez vos préférences{% endif %}</h1>
+        </div>
+
+        <div class="content">
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+
+            <div id="errorMessage" class="error-message"></div>
+
+            <form id="preferencesForm" class="preferences-form">
+                {% for question in questions %}
+                    <div class="preference-section" data-question-index="{{ loop.index0 }}">
+                        <h2>{{ question.text }}</h2>
+                        <div class="options-grid">
+                            {% for option in question.options %}
+                                <div class="option-item{% if option.id in selectedPreferences %} selected{% endif %}">
+                                    <input 
+                                        type="checkbox" 
+                                        name="preferences[]" 
+                                        value="{{ option.id }}" 
+                                        class="preference-option" 
+                                        data-question-index="{{ loop.parent.loop.index0 }}"
+                                        {% if option.id in selectedPreferences %}checked{% endif %}
+                                    >
+                                    <div class="option-image-container">
+                                        {% if option.imagePath %}
+                                            <img 
+                                                src="{{ option.imagePath }}" 
+                                                alt="{{ option.text }}" 
+                                                class="option-image"
+                                                onerror="this.src='/assets/img/options/placeholder.jpg'"
+                                            >
+                                        {% else %}
+                                            <div class="placeholder-image"></div>
+                                        {% endif %}
+                                    </div>
+                                    <span class="option-title">{{ option.text }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+
+                <button type="submit" class="submit-button" disabled>
+                    {% if isNewUser %}Terminer l'inscription{% else %}Sauvegarder mes préférences{% endif %}
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/preferences.js"></script>
+</body>
+</html>

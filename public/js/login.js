@@ -1,56 +1,58 @@
-// document.addEventListener('DOMContentLoaded', () => {
-//     const loginForm = document.getElementById('login-form');
+//public/js/login.js
 
-//     loginForm.addEventListener('submit', async (e) => {
-//         e.preventDefault();
+document.addEventListener('DOMContentLoaded', () => {
+    const loginForm = document.getElementById('login-form');
 
-//         const email = document.getElementById('email').value;
-//         const password = document.getElementById('password').value;
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-//         try {
-//             const response = await fetch('/login', {
-//                 method: 'POST',
-//                 headers: {
-//                     'Content-Type': 'application/json',
-//                 },
-//                 body: JSON.stringify({ email, password }),
-//             });
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
 
-//             const data = await response.json();
+        try {
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, password }),
+            });
 
-//             if (response.ok) {
-//                 // Redirection après connexion réussie
-//                 window.location.href = '/dashboard';
-//             } else {
-//                 // Affichage des erreurs
-//                 displayErrors(data.errors);
-//             }
-//         } catch (error) {
-//             console.error('Erreur lors de la connexion:', error);
-//         }
-//     });
+            const data = await response.json();
 
-//     function displayErrors(errors) {
-//         // Effacer les erreurs précédentes
-//         document.querySelectorAll('.error').forEach(el => el.textContent = '');
+            if (response.ok) {
+                // Redirection après connexion réussie
+                window.location.href = '/dashboard';
+            } else {
+                // Affichage des erreurs
+                displayErrors(data.errors);
+            }
+        } catch (error) {
+            console.error('Erreur lors de la connexion:', error);
+        }
+    });
 
-//         // Afficher les nouvelles erreurs
-//         for (const [field, message] of Object.entries(errors)) {
-//             const errorElement = document.getElementById(`${field}-error`);
-//             if (errorElement) {
-//                 errorElement.textContent = message;
-//             }
-//         }
-//     }
-// });
+    function displayErrors(errors) {
+        // Effacer les erreurs précédentes
+        document.querySelectorAll('.error').forEach(el => el.textContent = '');
 
-// function validateEmail(email) {
-//     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-//     return re.test(email);
-// }
+        // Afficher les nouvelles erreurs
+        for (const [field, message] of Object.entries(errors)) {
+            const errorElement = document.getElementById(`${field}-error`);
+            if (errorElement) {
+                errorElement.textContent = message;
+            }
+        }
+    }
+});
 
-// function validatePassword(password) {
-//     return password.length >= 8;
-// }
+function validateEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+}
 
-// // Ajoutez ces validations dans vos event listeners de formulaire
+function validatePassword(password) {
+    return password.length >= 8;
+}
+
+// Ajoutez ces validations dans vos event listeners de formulaire

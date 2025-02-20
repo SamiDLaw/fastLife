@@ -1,4 +1,4 @@
-/* .auth-overlay {
+.auth-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -8,7 +8,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 1001;
 }
 
 .auth-container {
@@ -103,4 +103,4 @@ button:hover {
   color: red;
   font-size: 14px;
   margin-top: 5px;
-} */
+}

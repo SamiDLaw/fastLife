@@ -1,0 +1,18 @@
+<!-- scr/views/pages/location.twig -->
+
+{% extends "layouts/base.twig" %}
+
+{% block content %}
+	<h1>Tourist Locations</h1>
+	<div class="locations-list">
+		{% for location in locations %}
+			<div class="location-item">
+				<h2>{{ location.name }}</h2>
+				<p>{{ location.description }}</p>
+				<p>Coordinates:
+					{{ location.latitude }},
+					{{ location.longitude }}</p>
+			</div>
+		{% endfor %}
+	</div>
+{% endblock %}

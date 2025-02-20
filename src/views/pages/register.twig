@@ -1,0 +1,68 @@
+<!-- scr/views/pages/register.twig -->
+
+{% extends "../layouts/base.twig" %}
+
+{% block title %}
+	<title>Inscription</title>
+{% endblock %}
+
+{% block style %}
+	{{ parent() }}
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
+	<link rel="stylesheet" href="/css/register-with-map.css">
+	<link rel="stylesheet" href="/css/register.css">
+{% endblock %}
+
+{% block main %}
+	<div id="map-background"></div>
+	<div class="auth-overlay">
+		<div class="auth-container">
+			<h2>Inscription</h2>
+			<form action="/register" id="register" method="POST">
+				<div class="form-row">
+					<input type="text" id="lastName" name="lastName" placeholder="Nom" required>
+					<input type="text" id="firstName" name="firstName" placeholder="Prénom" required>
+				</div>
+				<div class="form-row">
+					<input type="email" id="email" name="email" placeholder="Adresse email" required>
+					<input type="date" id="dateOfBirth" name="dateOfBirth" placeholder="Date de naissance" required>
+				</div>
+				<div class="form-row">
+					<input type="password" id="password" name="password" placeholder="Mot de passe" required minlength="8">
+					<input type="password" name="confirmPassword" id="confirmPassword" placeholder="Confirmer le mot de passe" required>
+				</div>
+				<div class="gender-group">
+					<label><input type="radio" name="gender" value="male" required>
+						Homme</label>
+					<label><input type="radio" name="gender" value="female" required>
+						Femme</label>
+					<label><input type="radio" name="gender" value="other" required>
+						Autre</label>
+				</div>
+				<button type="submit">S'inscrire</button>
+				<p class="register-link">Déjà inscrit ?
+					<a href="/login">Connectez-vous</a>
+				</p>
+			</form>
+		</div>
+	</div>
+{% endblock %}
+
+{% block script %}
+	<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+const map = L.map('map-background', {
+zoomControl: false,
+dragging: false,
+touchZoom: false,
+scrollWheelZoom: false,
+doubleClickZoom: false
+}).setView([
+48.8566, 2.3522
+], 13);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: '© OpenStreetMap contributors'}).addTo(map);
+});
+	</script>
+{% endblock %}

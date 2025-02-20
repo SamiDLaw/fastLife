@@ -1,0 +1,187 @@
+{% extends "layouts/base.twig" %}
+
+{% block title %}
+    <title>Carte - FastLife</title>
+{% endblock %}
+
+{% block style %}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
+    <link rel="stylesheet" href="/css/map.css"/>
+{% endblock %}
+
+{% block main %}
+    <div class="map-wrapper">
+        <!-- Carte -->
+        <div id="map"></div>
+
+        <!-- Barre de recherche -->
+        <div class="search-bar">
+            <div class="search-input-wrapper">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="search-input" placeholder="Rechercher un lieu...">
+                <button id="search-button">Rechercher</button>
+            </div>
+        </div>
+
+        <!-- Boutons de contrôle -->
+        <div class="floating-controls">
+            <button class="control-button" id="theme-toggle" title="Changer le thème">
+                <i class="fas fa-moon"></i>
+            </button>
+            <button class="control-button" id="menu-toggle" title="Menu">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+        <!-- Menu flottant -->
+        <div class="floating-menu">
+            {% if user %}
+                <div class="menu-section">
+                    <div class="menu-item">
+                        <a href="/profile">
+                            <i class="fas fa-user"></i>
+                            Mon profil
+                        </a>
+                    </div>
+                    <div class="menu-item">
+                        <a href="/favorites">
+                            <i class="fas fa-heart"></i>
+                            Favoris
+                        </a>
+                    </div>
+                    <div class="menu-item">
+                        <a href="/history">
+                            <i class="fas fa-history"></i>
+                            Historique
+                        </a>
+                    </div>
+                </div>
+                <div class="menu-separator"></div>
+                <div class="menu-section">
+                    <div class="menu-item">
+                        <a href="/preferences">
+                            <i class="fas fa-cog"></i>
+                            Paramètres
+                        </a>
+                    </div>
+                    <div class="menu-item">
+                        <a href="/logout" class="logout-link">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Déconnexion
+                        </a>
+                    </div>
+                </div>
+            {% else %}
+                <div class="menu-section">
+                    <div class="menu-item">
+                        <a href="/login">
+                            <i class="fas fa-sign-in-alt"></i>
+                            Se connecter
+                        </a>
+                    </div>
+                    <div class="menu-item">
+                        <a href="/register">
+                            <i class="fas fa-user-plus"></i>
+                            S'inscrire
+                        </a>
+                    </div>
+                </div>
+                <div class="menu-separator"></div>
+                <div class="menu-section">
+                    <div class="menu-item">
+                        <a href="/about">
+                            <i class="fas fa-info-circle"></i>
+                            À propos
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Bouton GPT -->
+        <button class="gpt-button">
+            GPT
+            <small>Assistant IA</small>
+        </button>
+
+        <!-- Message d'erreur -->
+        <div id="error-message" class="error-message"></div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="/js/map.js"></script>
+    <script>
+        // Détecter le thème système
+        function getSystemTheme() {
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+
+        // Mettre à jour le thème
+        function updateTheme(theme) {
+            document.body.classList.toggle('dark-mode', theme === 'dark');
+            const themeIcon = document.querySelector('#theme-toggle i');
+            themeIcon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        }
+
+        // Écouter les changements de thème système
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+            const newTheme = e.matches ? 'dark' : 'light';
+            updateTheme(newTheme);
+            localStorage.setItem('theme', 'system');
+        });
+
+        // Initialiser le thème
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme');
+            const theme = savedTheme === 'system' || !savedTheme ? getSystemTheme() : savedTheme;
+            updateTheme(theme);
+        });
+
+        // Toggle du thème
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            const isDark = document.body.classList.contains('dark-mode');
+            const newTheme = isDark ? 'light' : 'dark';
+            updateTheme(newTheme);
+            localStorage.setItem('theme', newTheme);
+        });
+
+        // Gestion du menu
+        const menuToggle = document.getElementById('menu-toggle');
+        const floatingMenu = document.querySelector('.floating-menu');
+
+        menuToggle.addEventListener('click', () => {
+            floatingMenu.classList.toggle('active');
+        });
+
+        // Fermer le menu en cliquant en dehors
+        document.addEventListener('click', (e) => {
+            if (!menuToggle.contains(e.target) && !floatingMenu.contains(e.target)) {
+                floatingMenu.classList.remove('active');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch('/api/aggregated-data?lat=43.2965&lon=5.3698');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                if (!data || !data.places || data.places.length === 0) {
+                    console.warn('No places data available for rendering.');
+                    document.getElementById('error-message').textContent = 'Aucun lieu disponible à afficher.';
+                    document.getElementById('error-message').style.display = 'block';
+                    return;
+                }
+                window.places = data.places;
+                initMap();
+            } catch (error) {
+                console.error('Error loading places data:', error);
+                document.getElementById('error-message').textContent = 'Erreur lors du chargement des données. Veuillez réessayer.';
+                document.getElementById('error-message').style.display = 'block';
+            }
+        });
+    </script>
+{% endblock %}

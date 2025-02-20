@@ -1,0 +1,34 @@
+<!-- scr/views/pages/recommendations.twig -->
+
+<!DOCTYPE html>
+<html lang="fr">
+	<head>
+		<meta charset="UTF-8">
+		<title>Recommandations</title>
+		<link rel="stylesheet" href="/css/recommendations.css">
+	</head>
+	<body>
+		<div class="container">
+			<h1>Événements Recommandés pour Toi</h1>
+			{% if events.length > 0 %}
+				<div class="event-list">
+					{% for event in events %}
+						<div class="event-item">
+							<h2>{{ event.title }}</h2>
+							<p>
+								<strong>Catégorie:</strong>
+								{{ event.category.name }}</p>
+							<p>
+								<strong>Lieu:</strong>
+								{{ event.location.name }}</p>
+							<p>{{ event.location.description }}</p>
+						</div>
+					{% endfor %}
+				</div>
+			{% else %}
+				<p>Aucun événement ne correspond à tes préférences pour le moment. Reviens plus tard !</p>
+			{% endif %}
+		</div>
+	</body>
+
+</html>

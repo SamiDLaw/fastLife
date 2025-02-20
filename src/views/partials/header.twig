@@ -1,0 +1,47 @@
+<!-- scr/views/partials/header.twig -->
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+<header class="app-header">
+    <div class="header-content">
+        <div class="logo-container">
+            <a href="/">
+                <img src="/assets/img/logo.png" alt="FastLife logo">
+            </a>
+        </div>
+
+        <div class="user-controls">
+            <button class="account-icon" title="👤">
+                <i class="fas fa-user"></i>
+            </button>
+            <button class="dark-mode-toggle" title="🌙">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
+    </div>
+
+    <nav class="navbar">
+        <ul>
+            {% if user %}
+                <li>
+                    <a href="/logout">Déconnexion</a>
+                </li>
+            {% else %}
+                <li>
+                    <a href="/register">Inscription</a>
+                </li>
+                <li>
+                    <a href="/login">Connexion</a>
+                </li>
+            {% endif %}
+            <li>
+                <a href="/help">Aide et Support</a>
+            </li>
+            <li>
+                <a href="/download">Télécharger l'appli</a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<!-- Correction du chargement du script -->
+<script src="/js/app.js"></script>

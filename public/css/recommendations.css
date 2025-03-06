@@ -1,0 +1,13 @@
+/* Exemple de styles pour recommendations.twig */
+.container {
+  max-width: 800px;
+  margin: auto;
+  padding: 20px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+}
+
+h1 {
+  text-align: center;
+}
+

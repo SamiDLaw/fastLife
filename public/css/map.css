@@ -1,0 +1,935 @@
+/* Reset et styles de base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+/* Thèmes */
+:root {
+    --background: #ffffff;
+    --text: #202124;
+    --text-secondary: #5f6368;
+    --surface: #ffffff;
+    --surface-transparent: rgba(255, 255, 255, 0.9);
+    --primary: #1a73e8;
+    --primary-variant: #1557b0;
+    --border: #dadce0;
+    --shadow: rgba(0, 0, 0, 0.1);
+}
+
+.dark-mode {
+    --background: #1a1c1e;
+    --text: #e8eaed;
+    --text-secondary: #9aa0a6;
+    --surface: #2d2e31;
+    --surface-transparent: rgba(32, 33, 36, 0.9);
+    --primary: #8ab4f8;
+    --primary-variant: #93baf9;
+    --border: #3c4043;
+    --shadow: rgba(0, 0, 0, 0.3);
+}
+
+body {
+    background-color: var(--background);
+    color: var(--text);
+}
+
+/* Container principal */
+.map-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    z-index: 0;
+}
+
+/* Carte */
+#map {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+/* Barre de recherche */
+.search-bar {
+    position: absolute;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(600px, calc(100% - 40px));
+    z-index: 1000;
+}
+
+.search-input-wrapper {
+    display: flex;
+    align-items: center;
+    background: var(--surface-transparent);
+    padding: 12px 20px;
+    border-radius: 24px;
+    box-shadow: 0 2px 6px var(--shadow);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.search-icon {
+    color: var(--text-secondary);
+    margin-right: 12px;
+    font-size: 18px;
+}
+
+#search-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-size: 16px;
+    outline: none;
+    min-width: 0;
+}
+
+#search-input::placeholder {
+    color: var(--text-secondary);
+}
+
+#search-button {
+    background: var(--primary);
+    color: #ffffff;
+    border: none;
+    padding: 8px 24px;
+    border-radius: 24px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-left: 12px;
+    transition: background-color 0.2s;
+}
+
+#search-button:hover {
+    background: var(--primary-variant);
+}
+
+/* Menu flottant */
+.floating-menu {
+    position: absolute;
+    top: 60px;
+    right: 12px;
+    background: var(--surface-transparent);
+    border-radius: 12px;
+    box-shadow: 0 2px 6px var(--shadow);
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: none;
+    min-width: 220px;
+    overflow: hidden;
+}
+
+.floating-menu.active {
+    display: block;
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.menu-header {
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.menu-section {
+    padding: 8px 0;
+}
+
+.menu-item {
+    padding: 0;
+}
+
+.menu-item a {
+    color: var(--text);
+    text-decoration: none;
+    font-size: 14px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.2s;
+}
+
+.menu-item a i {
+    width: 20px;
+    text-align: center;
+    font-size: 16px;
+    color: var(--text-secondary);
+}
+
+.menu-item a:hover {
+    background: rgba(0, 0, 0, 0.08);
+    padding-left: 20px;
+}
+
+.menu-item a.logout-link {
+    color: #d93025;
+}
+
+.menu-item a.logout-link i {
+    color: #d93025;
+}
+
+.menu-separator {
+    height: 1px;
+    background: var(--border);
+    margin: 4px 16px;
+}
+
+/* Indicateur de connexion */
+.connection-status {
+    position: absolute;
+    top: 12px;
+    right: 120px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface-transparent);
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 2px 6px var(--shadow);
+    color: var(--text);
+    z-index: 1000;
+}
+
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #34A853;
+    position: relative;
+}
+
+.status-indicator.connected {
+    background: #34A853;
+    box-shadow: 0 0 0 2px rgba(52, 168, 83, 0.2);
+}
+
+.status-indicator.disconnected {
+    background: #9aa0a6;
+    box-shadow: 0 0 0 2px rgba(154, 160, 166, 0.2);
+}
+
+.status-indicator::after {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    right: -1px;
+    bottom: -1px;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+    70% {
+        transform: scale(2);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(2);
+        opacity: 0;
+    }
+}
+
+/* Boutons de contrôle */
+.floating-controls {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    gap: 8px;
+    z-index: 1000;
+}
+
+.map-controls {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.control-button {
+    background: var(--surface-transparent);
+    border: none;
+    border-radius: 8px;
+    padding: 10px 15px;
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 6px var(--shadow);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: all 0.2s;
+}
+
+.control-button:hover {
+    background: rgba(var(--text-rgb), 0.08);
+    transform: translateY(-2px);
+}
+
+.control-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.control-button i {
+    font-size: 16px;
+}
+
+.control-button span {
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.place-card {
+    position: absolute;
+    left: 50%;
+    bottom: 30px;
+    transform: translateX(-50%);
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    width: 90%;
+    max-width: 400px;
+    z-index: 1000;
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+}
+
+.place-card.active {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
+}
+
+.place-card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.place-card-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #333;
+}
+
+.place-card-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.place-card-close:hover {
+    background-color: #f5f5f5;
+}
+
+.place-card-content {
+    padding: 16px 20px;
+}
+
+.place-info {
+    display: grid;
+    gap: 12px;
+}
+
+.place-type {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.place-type i {
+    font-size: 16px;
+}
+
+.place-rating {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #f39c12;
+}
+
+.place-rating i {
+    font-size: 16px;
+}
+
+.place-hours {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #444;
+}
+
+.place-hours i {
+    font-size: 16px;
+}
+
+.place-coordinates {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #777;
+    font-size: 0.85rem;
+}
+
+.place-coordinates i {
+    font-size: 14px;
+}
+
+/* Bouton GPT */
+.gpt-button {
+    position: absolute;
+    bottom: 24px;
+    left: 24px;
+    background: var(--primary);
+    color: #ffffff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 24px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 2px 6px var(--shadow);
+    transition: all 0.2s;
+}
+
+.gpt-button small {
+    font-size: 12px;
+    opacity: 0.7;
+    margin-top: 4px;
+}
+
+.gpt-button:hover {
+    background: var(--primary-variant);
+    transform: translateY(-2px);
+}
+
+/* Message d'erreur */
+.error-message {
+    position: fixed;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #d93025;
+    color: #ffffff;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    z-index: 2000;
+    display: none;
+    box-shadow: 0 2px 6px var(--shadow);
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translate(-50%, -100%);
+        opacity: 0;
+    }
+    to {
+        transform: translate(-50%, 0);
+        opacity: 1;
+    }
+}
+
+/* Styles de la carte */
+.dark-mode .leaflet-tile-pane {
+    filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
+}
+
+.leaflet-popup-content-wrapper {
+    background: var(--surface-transparent);
+    color: var(--text);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 8px;
+}
+
+.leaflet-popup-tip {
+    background: var(--surface-transparent);
+}
+
+/* Contrôles Leaflet */
+.leaflet-control-zoom {
+    margin: 15px !important;
+}
+
+.leaflet-control-zoom a {
+    background: var(--surface-transparent) !important;
+    color: var(--text) !important;
+    border: none !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.leaflet-control-zoom a:hover {
+    background: rgba(var(--text-rgb), 0.08) !important;
+}
+
+/* Marqueurs personnalisés */
+.custom-marker {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--primary);
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 6px var(--shadow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-weight: bold;
+    transition: transform 0.2s;
+}
+
+.marker-pin {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+}
+
+.place-popup {
+    padding: 10px;
+}
+
+.place-popup h3 {
+    margin: 0 0 10px 0;
+    color: var(--primary);
+    font-size: 1.2rem;
+}
+
+.place-popup p {
+    margin: 5px 0;
+    color: var(--text);
+}
+
+/* Sidebar */
+.sidebar {
+    position: fixed;
+    top: 0;
+    right: -400px;
+    width: 400px;
+    height: 100vh;
+    background: var(--surface);
+    box-shadow: -2px 0 10px var(--shadow);
+    transition: right 0.3s ease;
+    z-index: 1000;
+    overflow-y: auto;
+}
+
+.sidebar-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.close-sidebar {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.close-sidebar:hover {
+    background-color: var(--hover);
+}
+
+.sidebar-content {
+    padding: 20px;
+}
+
+.place-info {
+    color: var(--text);
+}
+
+.place-info h2 {
+    margin: 0 0 15px 0;
+    color: var(--primary);
+    font-size: 1.5rem;
+}
+
+.place-info p {
+    margin: 10px 0;
+    line-height: 1.4;
+}
+
+.place-type {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.place-rating {
+    color: #f39c12;
+    font-weight: 600;
+}
+
+.place-hours {
+    color: var(--text);
+}
+
+.place-coordinates {
+    font-size: 0.9em;
+    color: var(--text-secondary);
+}
+
+/* Styles pour les filtres de catégories */
+.category-filters {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    overflow-x: auto;
+    padding: 5px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.filter-button {
+    background: var(--surface-transparent);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text);
+    padding: 8px 15px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    white-space: nowrap;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.filter-button i {
+    font-size: 1rem;
+}
+
+.filter-button:hover {
+    background: var(--surface);
+    transform: translateY(-1px);
+}
+
+.filter-button.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+/* Styles des marqueurs par catégorie */
+.marker-restaurant { color: #FF5722; }
+.marker-hotel { color: #2196F3; }
+.marker-cultural { color: #9C27B0; }
+.marker-nature { color: #4CAF50; }
+.marker-sport { color: #FF9800; }
+.marker-entertainment { color: #E91E63; }
+.marker-event { color: #F44336; }
+
+/* Styles pour le bouton de géolocalisation */
+#location-button {
+    background-color: #fff;
+    border: none;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    cursor: pointer;
+    height: 40px;
+    width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s;
+}
+
+#location-button:hover {
+    background-color: #f5f5f5;
+}
+
+#location-button i {
+    color: #4285f4;
+    font-size: 18px;
+}
+
+/* Animation pulsante pour le marqueur de position */
+.pulsing-circle {
+    display: none;
+}
+
+/* Styles pour le marqueur de position style Apple Maps */
+.location-marker-container {
+    background: none !important;
+    border: none !important;
+}
+
+.location-marker {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    pointer-events: none;
+}
+
+.location-dot {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 12px;
+    height: 12px;
+    background: #007AFF;
+    border: 2px solid #FFFFFF;
+    border-radius: 50%;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+}
+
+.location-halo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 24px;
+    height: 24px;
+    background: rgba(0, 122, 255, 0.15);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    animation: halo-pulse 2s ease-out infinite;
+    z-index: 999;
+}
+
+.location-radius {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 40px;
+    height: 40px;
+    background: rgba(0, 122, 255, 0.1);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    animation: radius-pulse 2s ease-out infinite;
+    z-index: 998;
+}
+
+.halo-effect {
+    animation: halo-pulse 2s ease-out infinite;
+}
+
+.radar-effect {
+    animation: radar-pulse 3s ease-out infinite;
+}
+
+@keyframes halo-pulse {
+    0% {
+        opacity: 0.2;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.3;
+        transform: scale(1.5);
+    }
+    100% {
+        opacity: 0.2;
+        transform: scale(1);
+    }
+}
+
+@keyframes radar-pulse {
+    0% {
+        opacity: 0.1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.15;
+        transform: scale(1.8);
+    }
+    100% {
+        opacity: 0.1;
+        transform: scale(1);
+    }
+}
+
+.location-popup-container {
+    margin-bottom: 10px;
+}
+
+.location-popup {
+    padding: 8px 12px;
+    text-align: center;
+}
+
+.location-popup strong {
+    color: #007AFF;
+    display: block;
+    margin-bottom: 4px;
+    font-size: 14px;
+}
+
+.location-method {
+    font-size: 12px;
+    color: #666;
+    font-style: italic;
+}
+
+/* Message de chargement */
+.loading-message {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.9);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 1000;
+}
+
+.spinner {
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #4285f4;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Style pour la popup de localisation */
+.location-popup {
+    padding: 5px;
+    text-align: center;
+}
+
+.location-popup strong {
+    color: #4285f4;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.location-method {
+    font-size: 0.9em;
+    color: #666;
+    font-style: italic;
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+    .search-bar {
+        width: calc(100% - 24px);
+    }
+
+    .floating-menu {
+        top: 60px;
+        right: 12px;
+        left: 12px;
+        width: auto;
+    }
+
+    .gpt-button {
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 12px;
+    }
+
+    .gpt-button:hover {
+        transform: translateX(-50%) translateY(-2px);
+    }
+
+    .sidebar {
+        width: 100%;
+        right: -100%;
+    }
+
+    .place-card {
+        width: 95%;
+        bottom: 100px;
+    }
+
+    .map-controls {
+        bottom: 20px;
+        right: 20px;
+    }
+
+    .control-button {
+        padding: 8px 12px;
+    }
+
+    .control-button span {
+        font-size: 13px;
+    }
+}

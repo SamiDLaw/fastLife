@@ -1,0 +1,22 @@
+<div id="reviews">
+	<h3>Avis</h3>
+	{% for review in reviews %}
+		<div class="review">
+			<p>{{ review.content }}</p>
+			<p>Note:
+				{{ review.rating }}/5</p>
+		</div>
+	{% endfor %}
+</div>
+
+<form id="review-form">
+	<textarea name="content" placeholder="Votre avis"></textarea>
+	<select name="rating">
+		<option value="1">1 étoile</option>
+		<option value="2">2 étoiles</option>
+		<option value="3">3 étoiles</option>
+		<option value="4">4 étoiles</option>
+		<option value="5">5 étoiles</option>
+	</select>
+	<button type="submit">Soumettre l'avis</button>
+</form>

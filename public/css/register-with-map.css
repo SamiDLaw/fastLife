@@ -1,0 +1,24 @@
+/* Fond de carte en arrière-plan */
+#map-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  z-index: -1;
+}
+
+/* Superposition du formulaire d'inscription */
+.auth-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: "Roboto", sans-serif;
+  z-index: 1001; /* Assurez-vous que c'est en dessous de .auth-container */
+}

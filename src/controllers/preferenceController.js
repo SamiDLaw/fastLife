@@ -40,17 +40,55 @@ exports.getPreferencesForm = async (req, res) => {
         const questionsWithImages = allQuestions.map(question => ({
             ...question,
             options: question.options.map(option => {
-                // Normaliser le nom de l'image en retirant les accents et en remplaçant les espaces par des underscores
-                const normalizedText = option.text
+                // Utiliser l'imagePath de la base de données si disponible
+                if (option.imagePath) {
+                    console.log(`Option ${option.id} (${option.text}) utilise l'image de la base de données: ${option.imagePath}`);
+                    return {
+                        ...option
+                    };
+                }
+                
+                // Sinon, générer un chemin d'image basé sur le texte
+                let normalizedText = option.text
                     .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Supprimer les accents
                     .toLowerCase().replace(/\s+/g, '_'); // Mettre en minuscule et remplacer les espaces
                 
+                // Fallback pour les images courantes
+                const commonImages = {
+                    'sport_fitness': 'sport_fitness',
+                    'art_culture': 'art_culture',
+                    'nature_plein_air': 'nature_plein_air',
+                    'musique_concerts': 'musique_concerts',
+                    'bien_etre_detente': 'bien_etre_d_tente',
+                    'decontractee': 'd_contract_e',
+                    'elegante': '_l_gante',
+                    'festive': 'festive',
+                    'romantique': 'romantique',
+                    'branchee': 'branch_e',
+                    'economique': '_conomique',
+                    'moyen': 'moyen',
+                    'premium': 'premium'
+                };
+                
+                if (commonImages[normalizedText]) {
+                    normalizedText = commonImages[normalizedText];
+                }
+                
+                const imagePath = `/assets/img/options/${normalizedText}.jpg`;
+                console.log(`Option ${option.id} (${option.text}) utilise l'image générée: ${imagePath}`);
+                
                 return {
                     ...option,
-                    imagePath: option.imagePath || `/assets/img/options/${normalizedText}.jpg`
+                    imagePath: imagePath
                 };
             })
         }));
+        
+        // Log pour déboguer
+        console.log(`Nombre de questions: ${questionsWithImages.length}`);
+        questionsWithImages.forEach((q, i) => {
+            console.log(`Question ${i+1}: ${q.text} - ${q.options.length} options`);
+        });
 
         res.render("pages/preferences.twig", {
             questions: questionsWithImages,

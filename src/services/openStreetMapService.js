@@ -40,8 +40,14 @@ class OpenStreetMapService {
                 cuisine: element.tags.cuisine || null,
                 opening_hours: element.tags.opening_hours || null,
                 description: element.tags.description || null,
-                website: element.tags.website || null,
-                phone: element.tags.phone || element.tags['contact:phone'] || null
+                website: element.tags.website || element.tags.url || null,
+                phone: element.tags.phone || element.tags['contact:phone'] || null,
+                address: this._formatAddress(element.tags),
+                amenities: this._getAmenities(element.tags),
+                price_level: element.tags.price || element.tags['price:range'] || null,
+                wheelchair: element.tags.wheelchair || null,
+                internet: element.tags.internet_access || null,
+                outdoor_seating: element.tags.outdoor_seating || null
             }))
             .sort((a, b) => {
                 const scoreA = this._calculateRelevanceScore(a);
@@ -165,6 +171,85 @@ class OpenStreetMapService {
             console.error('Erreur lors de la recherche:', error);
             return { places: [] };
         }
+    }
+
+    /**
+     * Formate l'adresse à partir des tags OSM
+     * @param {Object} tags - Les tags OSM
+     * @returns {string|null} - L'adresse formatée ou null
+     */
+    _formatAddress(tags) {
+        // Essayer d'abord d'utiliser l'adresse complète si disponible
+        if (tags.address || tags['addr:full']) {
+            return tags.address || tags['addr:full'];
+        }
+        
+        // Sinon, construire l'adresse à partir des composants individuels
+        const components = [];
+        
+        if (tags['addr:housenumber']) {
+            components.push(tags['addr:housenumber']);
+        }
+        
+        if (tags['addr:street']) {
+            components.push(tags['addr:street']);
+        }
+        
+        if (tags['addr:postcode']) {
+            components.push(tags['addr:postcode']);
+        }
+        
+        if (tags['addr:city']) {
+            components.push(tags['addr:city']);
+        }
+        
+        return components.length > 0 ? components.join(', ') : null;
+    }
+    
+    /**
+     * Extrait les commodités à partir des tags OSM
+     * @param {Object} tags - Les tags OSM
+     * @returns {Object} - Les commodités disponibles
+     */
+    _getAmenities(tags) {
+        const amenities = {};
+        
+        // Commodités pour les restaurants et cafés
+        if (tags.cuisine) {
+            amenities.cuisine = tags.cuisine.split(';').map(c => c.trim());
+        }
+        
+        if (tags.diet) {
+            amenities.diet = tags.diet.split(';').map(d => d.trim());
+        }
+        
+        // Paiement
+        if (tags.payment) {
+            amenities.payment = tags.payment.split(';').map(p => p.trim());
+        }
+        
+        // Accessibilité
+        if (tags.wheelchair === 'yes') {
+            amenities.wheelchair_accessible = true;
+        }
+        
+        // WiFi
+        if (tags.internet_access === 'wlan' || tags.internet_access === 'wifi') {
+            amenities.wifi = true;
+        }
+        
+        // Terrasse
+        if (tags.outdoor_seating === 'yes') {
+            amenities.outdoor_seating = true;
+        }
+        
+        // Parking
+        if (tags.parking === 'yes' || tags['parking:fee'] !== undefined) {
+            amenities.parking = true;
+            amenities.parking_fee = tags['parking:fee'] === 'yes';
+        }
+        
+        return Object.keys(amenities).length > 0 ? amenities : null;
     }
 }
 

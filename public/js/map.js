@@ -275,6 +275,73 @@ function filterMarkers() {
     });
 }
 
+/**
+ * Formate les horaires d'ouverture pour les rendre plus lisibles
+ * @param {string} openingHours - Chaîne de caractères contenant les horaires d'ouverture au format OSM
+ * @returns {string} - Horaires d'ouverture formatés
+ */
+function formatOpeningHours(openingHours) {
+    if (!openingHours) return 'Non disponible';
+    
+    // Si le format est déjà lisible, le retourner tel quel
+    if (!openingHours.includes(';') && !openingHours.includes(',')) {
+        return openingHours;
+    }
+    
+    // Traduction des jours en français
+    const dayTranslation = {
+        'Mo': 'Lundi',
+        'Tu': 'Mardi',
+        'We': 'Mercredi',
+        'Th': 'Jeudi',
+        'Fr': 'Vendredi',
+        'Sa': 'Samedi',
+        'Su': 'Dimanche'
+    };
+    
+    // Remplacer les codes de jours par leur équivalent en français
+    let formattedHours = openingHours;
+    Object.entries(dayTranslation).forEach(([code, day]) => {
+        formattedHours = formattedHours.replace(new RegExp(code, 'g'), day);
+    });
+    
+    // Remplacer les séparateurs par des sauts de ligne
+    formattedHours = formattedHours.replace(/;/g, '<br>');
+    formattedHours = formattedHours.replace(/,/g, ', ');
+    
+    // Remplacer les plages de jours
+    formattedHours = formattedHours.replace(/-/g, ' à ');
+    
+    return formattedHours;
+}
+
+/**
+ * Formate le niveau de prix pour l'affichage
+ * @param {string} priceLevel - Niveau de prix (€, €€, €€€, etc.)
+ * @returns {string} - Niveau de prix formaté avec des icônes
+ */
+function formatPriceLevel(priceLevel) {
+    // Si le prix est déjà au format €, €€, €€€, le retourner tel quel
+    if (priceLevel.includes('€')) {
+        return priceLevel;
+    }
+    
+    // Si le prix est au format 1, 2, 3, 4, 5, le convertir en €
+    if (['1', '2', '3', '4', '5'].includes(priceLevel)) {
+        return '€'.repeat(parseInt(priceLevel));
+    }
+    
+    // Si le prix est au format 'cheap', 'moderate', 'expensive', 'very_expensive'
+    const priceMapping = {
+        'cheap': '€',
+        'moderate': '€€',
+        'expensive': '€€€',
+        'very_expensive': '€€€€'
+    };
+    
+    return priceMapping[priceLevel] || priceLevel;
+}
+
 async function performSearch() {
     const searchInput = document.getElementById('search-input');
     const searchTerm = searchInput.value.trim();
@@ -332,24 +399,113 @@ function showPlaceDetails(place) {
         document.body.appendChild(sidebar);
     }
 
+    // Formatage des horaires d'ouverture
+    let openingHoursHtml = '';
+    if (place.opening_hours) {
+        openingHoursHtml = `
+            <div class="detail-section">
+                <h3><i class="fas fa-clock"></i> Horaires</h3>
+                <p>${formatOpeningHours(place.opening_hours)}</p>
+            </div>
+        `;
+    }
+
+    // Formatage des coordonnées et de l'adresse
+    let contactHtml = '';
+    if (place.phone || place.website || place.address) {
+        contactHtml = `
+            <div class="detail-section">
+                <h3><i class="fas fa-info-circle"></i> Informations</h3>
+                ${place.address ? `<p><i class="fas fa-map-marker-alt"></i> ${place.address}</p>` : ''}
+                ${place.phone ? `<p><i class="fas fa-phone"></i> <a href="tel:${place.phone}">${place.phone}</a></p>` : ''}
+                ${place.website ? `<p><i class="fas fa-globe"></i> <a href="${place.website}" target="_blank">Site web</a></p>` : ''}
+            </div>
+        `;
+    }
+
+    // Formatage des commodités
+    let amenitiesHtml = '';
+    if (place.amenities) {
+        const amenitiesList = [];
+        
+        if (place.amenities.wifi) {
+            amenitiesList.push('<i class="fas fa-wifi"></i> WiFi');
+        }
+        
+        if (place.amenities.wheelchair_accessible) {
+            amenitiesList.push('<i class="fas fa-wheelchair"></i> Accessible');
+        }
+        
+        if (place.amenities.outdoor_seating) {
+            amenitiesList.push('<i class="fas fa-umbrella-beach"></i> Terrasse');
+        }
+        
+        if (place.amenities.parking) {
+            amenitiesList.push('<i class="fas fa-parking"></i> Parking');
+        }
+        
+        if (place.amenities.cuisine) {
+            amenitiesList.push(`<i class="fas fa-utensils"></i> ${place.amenities.cuisine.join(', ')}`);
+        }
+        
+        if (amenitiesList.length > 0) {
+            amenitiesHtml = `
+                <div class="detail-section">
+                    <h3><i class="fas fa-concierge-bell"></i> Commodités</h3>
+                    <ul class="amenities-list">
+                        ${amenitiesList.map(item => `<li>${item}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+        }
+    }
+
+    // Prix
+    let priceHtml = '';
+    if (place.price_level) {
+        priceHtml = `
+            <div class="price-level">
+                <span>${formatPriceLevel(place.price_level)}</span>
+            </div>
+        `;
+    }
+
     const content = `
         <div class="sidebar-header">
             <button class="close-sidebar" onclick="document.getElementById('sidebar').classList.remove('active')">&times;</button>
         </div>
         <div class="sidebar-content">
             <div class="place-info">
-                <h2>${place.name}</h2>
-                <p class="place-type">${formatType(place.type)}</p>
-                ${place.rating ? `<p class="place-rating">Note: ${place.rating}/5</p>` : ''}
-                ${place.address ? `<p class="place-address">${place.address}</p>` : ''}
+                <div class="place-header">
+                    <h2>${place.name}</h2>
+                    <p class="place-type">${formatType(place.type)}</p>
+                    ${place.rating ? `<div class="place-rating"><i class="fas fa-star"></i> ${place.rating}/5</div>` : ''}
+                    ${priceHtml}
+                </div>
+                
                 ${place.description ? `<p class="place-description">${place.description}</p>` : ''}
-                <p class="place-coordinates">Coordonnées: ${place.latitude.toFixed(4)}, ${place.longitude.toFixed(4)}</p>
+                
+                ${contactHtml}
+                ${openingHoursHtml}
+                ${amenitiesHtml}
+                
+                <div class="detail-section">
+                    <p class="place-coordinates"><i class="fas fa-map-pin"></i> Coordonnées: ${place.latitude.toFixed(4)}, ${place.longitude.toFixed(4)}</p>
+                </div>
             </div>
         </div>
     `;
 
     sidebar.innerHTML = content;
     sidebar.classList.add('active');
+    
+    // Ajouter les icônes Font Awesome si elles ne sont pas déjà présentes
+    if (!document.querySelector('link[href*="font-awesome"]')) {
+        const fontAwesomeLink = document.createElement('link');
+        fontAwesomeLink.rel = 'stylesheet';
+        fontAwesomeLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css';
+        document.head.appendChild(fontAwesomeLink);
+    }
 }
 
 async function getUserLocation() {

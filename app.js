@@ -7,6 +7,7 @@ const userRouter = require('./src/router/userRouter');
 const preferenceRouter = require('./src/router/preferenceRouter');
 const locationRouter = require('./src/router/locationRouter');
 const eventRouter = require('./src/router/eventRouter');
+const chatbotRouter = require('./src/router/chatbotRouter');
 const authMiddleware = require('./src/middleware/auth');
 const sessionMiddleware = require('./src/middleware/sessionMiddleware');
 
@@ -52,6 +53,7 @@ app.use(sessionMiddleware);
 // Routes publiques
 app.use('/', userRouter);
 app.use('/api', locationRouter);
+app.use('/', chatbotRouter);
 
 // Routes protégées
 app.use(authMiddleware);

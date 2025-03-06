@@ -7,6 +7,7 @@
 {% block style %}
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
     <link rel="stylesheet" href="/css/map.css?v={{ 'now'|date('YmdHis') }}"/>
+    <link rel="stylesheet" href="/css/chatbot.css?v={{ 'now'|date('YmdHis') }}"/>
 {% endblock %}
 
 {% block main %}
@@ -115,6 +116,7 @@
 {% block script %}
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="/js/map.js?v={{ 'now'|date('YmdHis') }}"></script>
+    <script src="/js/chatbot.js?v={{ 'now'|date('YmdHis') }}"></script>
     <script>
         // Détecter le thème système
         function getSystemTheme() {

@@ -211,11 +211,17 @@ async function main() {
     }
 }
 
-main()
-    .catch((e) => {
-        console.error(e);
-        process.exit(1);
-    })
-    .finally(async () => {
-        await prisma.$disconnect();
-    });
+// Exporter la fonction main pour pouvoir l'appeler depuis d'autres fichiers
+module.exports = { main };
+
+// Exécuter le script si appelé directement
+if (require.main === module) {
+    main()
+        .catch((e) => {
+            console.error(e);
+            process.exit(1);
+        })
+        .finally(async () => {
+            await prisma.$disconnect();
+        });
+}

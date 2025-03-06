@@ -3,7 +3,8 @@ services:
     name: fastlife
     env: node
     buildCommand: npm install && npx prisma generate && mkdir -p ./public/assets/img/options
-    startCommand: npx prisma migrate deploy && node prisma/seed.js && node app.js
+    startCommand: node app.js
+    preDeployCommand: npx prisma migrate deploy && npx prisma db seed
     envVars:
       - key: NODE_ENV
         value: production

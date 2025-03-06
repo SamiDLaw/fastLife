@@ -3,6 +3,7 @@ const path = require('path');
 const session = require('express-session');
 const cors = require('cors');
 const twig = require('twig');
+const { PrismaClient } = require('@prisma/client');
 const userRouter = require('./src/router/userRouter');
 const preferenceRouter = require('./src/router/preferenceRouter');
 const locationRouter = require('./src/router/locationRouter');
@@ -10,6 +11,9 @@ const eventRouter = require('./src/router/eventRouter');
 const chatbotRouter = require('./src/router/chatbotRouter');
 const authMiddleware = require('./src/middleware/auth');
 const sessionMiddleware = require('./src/middleware/sessionMiddleware');
+
+// Initialiser Prisma
+const prisma = new PrismaClient();
 
 // Charge les variables d'environnement
 require('dotenv').config();
@@ -90,10 +94,45 @@ app.use((err, req, res, next) => {
     });
 });
 
+// Fonction pour vérifier l'état de la base de données
+async function checkDatabaseState() {
+    try {
+        console.log('Vérification de l\'état de la base de données...');
+        
+        // Vérifier les catégories
+        const categoriesCount = await prisma.category.count();
+        console.log(`Nombre de catégories: ${categoriesCount}`);
+        
+        // Vérifier les questions
+        const questionsCount = await prisma.question.count();
+        console.log(`Nombre de questions: ${questionsCount}`);
+        
+        // Vérifier les options
+        const optionsCount = await prisma.option.count();
+        console.log(`Nombre d'options: ${optionsCount}`);
+        
+        // Si aucune donnée n'est présente, exécuter le seed
+        if (categoriesCount === 0 || questionsCount === 0 || optionsCount === 0) {
+            console.log('Aucune donnée trouvée dans la base de données. Exécution du script de seed...');
+            // Importer et exécuter le script de seed
+            const seedScript = require('./prisma/seed');
+            await seedScript.main();
+            console.log('Script de seed exécuté avec succès!');
+        } else {
+            console.log('La base de données contient déjà des données.');
+        }
+    } catch (error) {
+        console.error('Erreur lors de la vérification de la base de données:', error);
+    }
+}
+
 // Démarrage du serveur
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
     console.log(`Serveur démarré sur le port ${PORT}`);
+    
+    // Vérifier l'état de la base de données au démarrage
+    await checkDatabaseState();
 });
 
 module.exports = app;

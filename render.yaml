@@ -4,7 +4,7 @@ services:
     env: node
     buildCommand: npm install && npx prisma generate && mkdir -p ./public/assets/img/options
     startCommand: node app.js
-    preDeployCommand: npx prisma migrate deploy && npx prisma db seed
+    preDeployCommand: npx prisma migrate deploy && npx prisma db seed && node scripts/copy-images.js
     envVars:
       - key: NODE_ENV
         value: production

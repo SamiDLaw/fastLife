@@ -40,9 +40,16 @@ exports.getPreferencesForm = async (req, res) => {
         const questionsWithImages = allQuestions.map(question => ({
             ...question,
             options: question.options.map(option => {
-                // Utiliser l'imagePath de la base de données si disponible
+                // Vérifier si l'option a déjà un chemin d'image défini dans la base de données
                 if (option.imagePath) {
                     console.log(`Option ${option.id} (${option.text}) utilise l'image de la base de données: ${option.imagePath}`);
+                    
+                    // S'assurer que le chemin commence par /assets
+                    if (!option.imagePath.startsWith('/assets')) {
+                        option.imagePath = `/assets/img/options/${option.imagePath.split('/').pop()}`;
+                        console.log(`Chemin d'image corrigé: ${option.imagePath}`);
+                    }
+                    
                     return {
                         ...option
                     };
@@ -53,25 +60,62 @@ exports.getPreferencesForm = async (req, res) => {
                     .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Supprimer les accents
                     .toLowerCase().replace(/\s+/g, '_'); // Mettre en minuscule et remplacer les espaces
                 
-                // Fallback pour les images courantes
-                const commonImages = {
+                // Mapping explicite pour les noms d'images
+                const imageMapping = {
+                    // Activités
                     'sport_fitness': 'sport_fitness',
                     'art_culture': 'art_culture',
                     'nature_plein_air': 'nature_plein_air',
                     'musique_concerts': 'musique_concerts',
                     'bien_etre_detente': 'bien_etre_d_tente',
+                    
+                    // Ambiance
                     'decontractee': 'd_contract_e',
                     'elegante': '_l_gante',
                     'festive': 'festive',
                     'romantique': 'romantique',
                     'branchee': 'branch_e',
+                    
+                    // Budget
                     'economique': '_conomique',
                     'moyen': 'moyen',
-                    'premium': 'premium'
+                    'premium': 'premium',
+                    'luxe': 'luxe',
+                    
+                    // Cuisine
+                    'cuisine_francaise': 'cuisine_fran_aise',
+                    'cuisine_italienne': 'cuisine_italienne',
+                    'cuisine_japonaise': 'cuisine_japonaise',
+                    'cuisine_mediterraneenne': 'cuisine_m_diterran_enne',
+                    'street_food': 'street_food',
+                    
+                    // Activités culturelles
+                    'musees_et_expositions': 'mus_es_et_expositions',
+                    'theatre_et_spectacles': 'th_tre_et_spectacles',
+                    'concerts_et_festivals': 'concerts_et_festivals',
+                    'sites_historiques': 'sites_historiques',
+                    
+                    // Sports
+                    'sports_nautiques': 'sports_nautiques',
+                    'randonnee': 'randonn_e',
+                    'velo': 'v_lo',
+                    'escalade': 'escalade',
+                    
+                    // Gastronomie
+                    'restaurants_gastronomiques': 'restaurants_gastronomiques',
+                    'cuisine_locale_traditionnelle': 'cuisine_locale_traditionnelle',
+                    'bars_et_cafes': 'bars_et_caf_s',
+                    
+                    // Nature
+                    'plages': 'plages',
+                    'parcs_et_jardins': 'parcs_et_jardins',
+                    'montagnes': 'montagnes',
+                    'forets': 'for_ts'
                 };
                 
-                if (commonImages[normalizedText]) {
-                    normalizedText = commonImages[normalizedText];
+                // Utiliser le mapping ou garder le texte normalisé
+                if (imageMapping[normalizedText]) {
+                    normalizedText = imageMapping[normalizedText];
                 }
                 
                 const imagePath = `/assets/img/options/${normalizedText}.jpg`;

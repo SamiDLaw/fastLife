@@ -29,7 +29,27 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Middleware pour servir des fichiers statiques
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), {
+    maxAge: '1d',
+    etag: true,
+    lastModified: true,
+    fallthrough: true,
+    index: false
+}));
+
+// Route spécifique pour les images des options
+app.get('/assets/img/options/:image', (req, res) => {
+    const imagePath = path.join(__dirname, 'public', 'assets', 'img', 'options', req.params.image);
+    console.log(`Tentative d'accès à l'image: ${imagePath}`);
+    res.sendFile(imagePath, (err) => {
+        if (err) {
+            console.error(`Erreur lors de l'envoi de l'image ${req.params.image}:`, err);
+            res.status(404).send('Image non trouvée');
+        } else {
+            console.log(`Image servie avec succès: ${req.params.image}`);
+        }
+    });
+});
 
 // Utilisation de CORS
 app.use(cors());

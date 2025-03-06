@@ -51,7 +51,7 @@ exports.getPreferencesForm = async (req, res) => {
                 } 
                 // Sinon, utiliser le mapping statique
                 else if (imageMapping[option.text]) {
-                    imagePath = `/assets/img/options/${imageMapping[option.text]}`;
+                    imagePath = imageMapping[option.text];
                     console.log(`Option ${option.id} (${option.text}) utilise l'image du mapping: ${imagePath}`);
                 } 
                 // Fallback: utiliser un nom générique basé sur le texte

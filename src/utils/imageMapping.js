@@ -2,59 +2,59 @@
 /**
  * Mapping entre les textes des options et les noms de fichiers d'images
  * Clé: Texte de l'option (tel qu'il apparaît dans la base de données)
- * Valeur: Nom du fichier d'image (sans le chemin)
+ * Valeur: Chemin complet vers le fichier d'image
  */
 const imageMapping = {
     // Activités
-    'Sport & Fitness': 'sport_fitness.jpg',
-    'Art & Culture': 'art_culture.jpg',
-    'Nature & Plein air': 'nature_plein_air.jpg',
-    'Musique & Concerts': 'musique_concerts.jpg',
-    'Bien-être & Détente': 'bien_etre_d_tente.jpg',
+    'Sport & Fitness': '/assets/img/options/sports.jpg',
+    'Art & Culture': '/assets/img/options/art_culture.jpg',
+    'Nature & Plein air': '/assets/img/options/nature.jpg',
+    'Musique & Concerts': '/assets/img/options/music.jpg',
+    'Bien-être & Détente': '/assets/img/options/wellness.jpg',
     
     // Ambiance
-    'Décontractée': 'd_contract_e.jpg',
-    'Élégante': '_l_gante.jpg',
-    'Festive': 'festive.jpg',
-    'Romantique': 'romantique.jpg',
-    'Branchée': 'branch_e.jpg',
+    'Décontractée': '/assets/img/options/casual.jpg',
+    'Élégante': '/assets/img/options/elegant.jpg',
+    'Festive': '/assets/img/options/festive.jpg',
+    'Romantique': '/assets/img/options/romantic.jpg',
+    'Branchée': '/assets/img/options/trendy.jpg',
     
     // Budget
-    'Économique': '_conomique.jpg',
-    'Moyen': 'moyen.jpg',
-    'Premium': 'premium.jpg',
-    'Luxe': 'luxe.jpg',
+    'Économique': '/assets/img/options/budget.jpg',
+    'Moyen': '/assets/img/options/moderate.jpg',
+    'Premium': '/assets/img/options/premium.jpg',
+    'Luxe': '/assets/img/options/luxury.jpg',
     
     // Cuisine
-    'Cuisine Française': 'cuisine_fran_aise.jpg',
-    'Cuisine Italienne': 'cuisine_italienne.jpg',
-    'Cuisine Japonaise': 'cuisine_japonaise.jpg',
-    'Cuisine Méditerranéenne': 'cuisine_m_diterran_enne.jpg',
-    'Street Food': 'street_food.jpg',
+    'Cuisine Française': '/assets/img/options/french_cuisine.jpg',
+    'Cuisine Italienne': '/assets/img/options/italian_cuisine.jpg',
+    'Cuisine Japonaise': '/assets/img/options/japanese_cuisine.jpg',
+    'Cuisine Méditerranéenne': '/assets/img/options/mediterranean_cuisine.jpg',
+    'Street Food': '/assets/img/options/street_food.jpg',
     
     // Activités culturelles
-    'Musées et expositions': 'mus_es_et_expositions.jpg',
-    'Théâtre et spectacles': 'th_tre_et_spectacles.jpg',
-    'Concerts et festivals': 'concerts_et_festivals.jpg',
-    'Sites historiques': 'sites_historiques.jpg',
+    'Musées et expositions': '/assets/img/options/art_culture.jpg',
+    'Théâtre et spectacles': '/assets/img/options/art_culture.jpg',
+    'Concerts et festivals': '/assets/img/options/music.jpg',
+    'Sites historiques': '/assets/img/options/art_culture.jpg',
     
     // Sports
-    'Sports nautiques': 'sports_nautiques.jpg',
-    'Randonnée': 'randonn_e.jpg',
-    'Vélo': 'v_lo.jpg',
-    'Escalade': 'escalade.jpg',
+    'Sports nautiques': '/assets/img/options/sports.jpg',
+    'Randonnée': '/assets/img/options/nature.jpg',
+    'Vélo': '/assets/img/options/sports.jpg',
+    'Escalade': '/assets/img/options/sports.jpg',
     
     // Gastronomie
-    'Restaurants gastronomiques': 'restaurants_gastronomiques.jpg',
-    'Cuisine locale traditionnelle': 'cuisine_locale_traditionnelle.jpg',
-    'Street food': 'street_food.jpg',
-    'Bars et cafés': 'bars_et_caf_s.jpg',
+    'Restaurants gastronomiques': '/assets/img/options/restaurants_gastronomiques.jpg',
+    'Cuisine locale traditionnelle': '/assets/img/options/cuisine_locale_traditionnelle.jpg',
+    'Street food': '/assets/img/options/street_food.jpg',
+    'Bars et cafés': '/assets/img/options/bars_et_caf_s.jpg',
     
     // Nature
-    'Plages': 'plages.jpg',
-    'Parcs et jardins': 'parcs_et_jardins.jpg',
-    'Montagnes': 'montagnes.jpg',
-    'Forêts': 'for_ts.jpg'
+    'Plages': '/assets/img/options/plages.jpg',
+    'Parcs et jardins': '/assets/img/options/parcs_et_jardins.jpg',
+    'Montagnes': '/assets/img/options/montagnes.jpg',
+    'Forêts': '/assets/img/options/for_ts.jpg'
 };
 
 module.exports = imageMapping;

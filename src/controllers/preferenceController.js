@@ -25,7 +25,6 @@ exports.getPreferencesForm = async (req, res) => {
         const allQuestions = await prisma.question.findMany({
             include: {
                 options: {
-                    take: 3, // Limite à 3 options par question
                     orderBy: {
                         id: 'asc'
                     }
@@ -40,10 +39,17 @@ exports.getPreferencesForm = async (req, res) => {
         // Ajouter les images pour chaque option
         const questionsWithImages = allQuestions.map(question => ({
             ...question,
-            options: question.options.map(option => ({
-                ...option,
-                imagePath: option.imagePath || `/assets/img/options/${option.text.toLowerCase().replace(/\s+/g, '_')}.jpg`
-            }))
+            options: question.options.map(option => {
+                // Normaliser le nom de l'image en retirant les accents et en remplaçant les espaces par des underscores
+                const normalizedText = option.text
+                    .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Supprimer les accents
+                    .toLowerCase().replace(/\s+/g, '_'); // Mettre en minuscule et remplacer les espaces
+                
+                return {
+                    ...option,
+                    imagePath: option.imagePath || `/assets/img/options/${normalizedText}.jpg`
+                };
+            })
         }));
 
         res.render("pages/preferences.twig", {

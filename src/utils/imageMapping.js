@@ -2,8 +2,22 @@
 /**
  * Mapping entre les textes des options et les noms de fichiers d'images
  * Clé: Texte de l'option (tel qu'il apparaît dans la base de données)
- * Valeur: Chemin complet vers le fichier d'image
+ * Valeur: URL de l'image (locale ou sur CDN)
  */
+
+// Déterminer si on utilise Cloudinary ou les fichiers locaux
+const useCloudinary = process.env.USE_CLOUDINARY === 'true';
+const cloudinaryBaseUrl = process.env.CLOUDINARY_BASE_URL || 'https://res.cloudinary.com/your-cloud-name/image/upload/';
+
+// Fonction pour générer l'URL d'une image
+const getImageUrl = (localPath) => {
+  if (!useCloudinary) return localPath;
+  
+  // Extraire le nom du fichier du chemin local
+  const fileName = localPath.split('/').pop().split('.')[0];
+  return `${cloudinaryBaseUrl}v1/fastlife/${fileName}`;
+};
+
 const imageMapping = {
     // Activités
     'Sport & Fitness': '/assets/img/options/sports.jpg',
@@ -58,3 +72,4 @@ const imageMapping = {
 };
 
 module.exports = imageMapping;
+module.exports.getImageUrl = getImageUrl;

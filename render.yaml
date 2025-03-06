@@ -2,12 +2,34 @@ services:
   - type: web
     name: fastlife
     env: node
+    plan: standard # Utiliser au moins le plan standard pour de meilleures performances
     buildCommand: npm install && npx prisma generate && mkdir -p ./public/assets/img/options && chmod -R 755 ./public
-    startCommand: node app.js
+    startCommand: NODE_ENV=production node app.js
     preDeployCommand: npx prisma migrate deploy && npx prisma db seed && node scripts/copy-images.js && node scripts/fix-static-files.js
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 10000
+      # Activer l'utilisation de Cloudinary (à configurer dans votre dashboard Render)
+      - key: USE_CLOUDINARY
+        value: false # Mettre à true une fois que vous aurez configuré Cloudinary
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false # Vous devrez définir cette valeur manuellement dans le dashboard Render
+      - key: CLOUDINARY_API_KEY
+        sync: false # Vous devrez définir cette valeur manuellement dans le dashboard Render
+      - key: CLOUDINARY_API_SECRET
+        sync: false # Vous devrez définir cette valeur manuellement dans le dashboard Render
+      - key: CLOUDINARY_BASE_URL
+        sync: false # Vous devrez définir cette valeur manuellement dans le dashboard Render
     autoDeploy: true
+    # Configuration des ressources
+    scaling:
+      minInstances: 1
+      maxInstances: 3 # Permettre le scaling automatique
+      targetMemoryUtilization: 80 # Scaling basé sur l'utilisation mémoire
+    # Optimisation du cache
+    headers:
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable # Cache d'un an pour les assets statiques

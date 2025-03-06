@@ -25,27 +25,48 @@ app.set('view engine', 'twig');
 app.set('views', path.join(__dirname, 'src', 'views'));
 
 // Middleware pour parser le JSON et les données URL-encoded
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '1mb' })); // Limiter la taille des requêtes JSON
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
-// Middleware pour servir des fichiers statiques
+// Compression pour réduire la taille des réponses
+const compression = require('compression');
+app.use(compression());
+
+// Middleware pour servir des fichiers statiques avec cache optimisé
 app.use(express.static(path.join(__dirname, 'public'), {
-    maxAge: '1d',
+    maxAge: '7d', // Augmenter la durée du cache à 7 jours
     etag: true,
     lastModified: true,
+    immutable: true, // Ajouter immutable pour les ressources qui ne changent pas
     fallthrough: true,
     index: false
 }));
 
-// Route spécifique pour les images des options
+// Utiliser le module imageMapping pour les URLs d'images
+const imageMapping = require('./src/utils/imageMapping');
+
+// Route spécifique pour les images des options avec mise en cache améliorée
 app.get('/assets/img/options/:image', (req, res) => {
+    // Ajouter des en-têtes de cache puissants
+    res.set({
+        'Cache-Control': 'public, max-age=604800, immutable', // 7 jours
+        'Surrogate-Control': 'public, max-age=604800',
+        'Expires': new Date(Date.now() + 604800000).toUTCString()
+    });
+    
     const imagePath = path.join(__dirname, 'public', 'assets', 'img', 'options', req.params.image);
-    console.log(`Tentative d'accès à l'image: ${imagePath}`);
+    
+    // En production, ne pas logger chaque accès aux images
+    if (process.env.NODE_ENV !== 'production') {
+        console.log(`Tentative d'accès à l'image: ${imagePath}`);
+    }
+    
     res.sendFile(imagePath, (err) => {
         if (err) {
+            // Logger uniquement les erreurs, même en production
             console.error(`Erreur lors de l'envoi de l'image ${req.params.image}:`, err);
             res.status(404).send('Image non trouvée');
-        } else {
+        } else if (process.env.NODE_ENV !== 'production') {
             console.log(`Image servie avec succès: ${req.params.image}`);
         }
     });
@@ -85,9 +106,13 @@ app.use('/preferences', preferenceRouter);
 app.use('/map', locationRouter);
 app.use('/events', eventRouter);
 
-// test log 
+// Middleware de logging optimisé pour la production
 app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    // Ne logger que les requêtes importantes en production
+    if (process.env.NODE_ENV !== 'production' || 
+        !req.url.startsWith('/assets/') && !req.url.startsWith('/public/')) {
+        console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    }
     next();
 });
 
@@ -114,32 +139,24 @@ app.use((err, req, res, next) => {
     });
 });
 
-// Fonction pour vérifier l'état de la base de données
+// Fonction pour vérifier l'état de la base de données de manière optimisée
 async function checkDatabaseState() {
     try {
         console.log('Vérification de l\'état de la base de données...');
         
-        // Vérifier les catégories
+        // Optimisation: vérifier uniquement le nombre de catégories pour déterminer si le seed est nécessaire
+        // Cela réduit le nombre de requêtes à la base de données
         const categoriesCount = await prisma.category.count();
-        console.log(`Nombre de catégories: ${categoriesCount}`);
         
-        // Vérifier les questions
-        const questionsCount = await prisma.question.count();
-        console.log(`Nombre de questions: ${questionsCount}`);
-        
-        // Vérifier les options
-        const optionsCount = await prisma.option.count();
-        console.log(`Nombre d'options: ${optionsCount}`);
-        
-        // Si aucune donnée n'est présente, exécuter le seed
-        if (categoriesCount === 0 || questionsCount === 0 || optionsCount === 0) {
+        // Si aucune catégorie n'est présente, exécuter le seed
+        if (categoriesCount === 0) {
             console.log('Aucune donnée trouvée dans la base de données. Exécution du script de seed...');
             // Importer et exécuter le script de seed
             const seedScript = require('./prisma/seed');
             await seedScript.main();
             console.log('Script de seed exécuté avec succès!');
         } else {
-            console.log('La base de données contient déjà des données.');
+            console.log(`Base de données initialisée avec ${categoriesCount} catégories.`);
         }
     } catch (error) {
         console.error('Erreur lors de la vérification de la base de données:', error);

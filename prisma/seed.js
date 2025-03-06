@@ -48,10 +48,10 @@ async function main() {
                 categoryId: cuisineCat.id,
                 options: {
                     create: [
-                        { text: 'Cuisine Française', imagePath: '/assets/img/options/french_cuisine.jpg' },
-                        { text: 'Cuisine Italienne', imagePath: '/assets/img/options/italian_cuisine.jpg' },
-                        { text: 'Cuisine Japonaise', imagePath: '/assets/img/options/japanese_cuisine.jpg' },
-                        { text: 'Cuisine Méditerranéenne', imagePath: '/assets/img/options/mediterranean_cuisine.jpg' },
+                        { text: 'Cuisine Française', imagePath: '/assets/img/options/cuisine_fran_aise.jpg' },
+                        { text: 'Cuisine Italienne', imagePath: '/assets/img/options/cuisine_italienne.jpg' },
+                        { text: 'Cuisine Japonaise', imagePath: '/assets/img/options/cuisine_japonaise.jpg' },
+                        { text: 'Cuisine Méditerranéenne', imagePath: '/assets/img/options/cuisine_m_diterran_enne.jpg' },
                         { text: 'Street Food', imagePath: '/assets/img/options/street_food.jpg' }
                     ]
                 }
@@ -65,11 +65,11 @@ async function main() {
                 categoryId: activitiesCat.id,
                 options: {
                     create: [
-                        { text: 'Sport & Fitness', imagePath: '/assets/img/options/sports.jpg' },
+                        { text: 'Sport & Fitness', imagePath: '/assets/img/options/sport_fitness.jpg' },
                         { text: 'Art & Culture', imagePath: '/assets/img/options/art_culture.jpg' },
-                        { text: 'Nature & Plein air', imagePath: '/assets/img/options/nature.jpg' },
-                        { text: 'Musique & Concerts', imagePath: '/assets/img/options/music.jpg' },
-                        { text: 'Bien-être & Détente', imagePath: '/assets/img/options/wellness.jpg' }
+                        { text: 'Nature & Plein air', imagePath: '/assets/img/options/nature_plein_air.jpg' },
+                        { text: 'Musique & Concerts', imagePath: '/assets/img/options/musique_concerts.jpg' },
+                        { text: 'Bien-être & Détente', imagePath: '/assets/img/options/bien_etre_d_tente.jpg' }
                     ]
                 }
             }
@@ -82,11 +82,11 @@ async function main() {
                 categoryId: ambianceCat.id,
                 options: {
                     create: [
-                        { text: 'Décontractée', imagePath: '/assets/img/options/casual.jpg' },
-                        { text: 'Élégante', imagePath: '/assets/img/options/elegant.jpg' },
+                        { text: 'Décontractée', imagePath: '/assets/img/options/d_contract_e.jpg' },
+                        { text: 'Élégante', imagePath: '/assets/img/options/_l_gante.jpg' },
                         { text: 'Festive', imagePath: '/assets/img/options/festive.jpg' },
-                        { text: 'Romantique', imagePath: '/assets/img/options/romantic.jpg' },
-                        { text: 'Branchée', imagePath: '/assets/img/options/trendy.jpg' }
+                        { text: 'Romantique', imagePath: '/assets/img/options/romantique.jpg' },
+                        { text: 'Branchée', imagePath: '/assets/img/options/branch_e.jpg' }
                     ]
                 }
             }
@@ -99,10 +99,10 @@ async function main() {
                 categoryId: budgetCat.id,
                 options: {
                     create: [
-                        { text: 'Économique', imagePath: '/assets/img/options/budget.jpg' },
-                        { text: 'Moyen', imagePath: '/assets/img/options/moderate.jpg' },
+                        { text: 'Économique', imagePath: '/assets/img/options/_conomique.jpg' },
+                        { text: 'Moyen', imagePath: '/assets/img/options/moyen.jpg' },
                         { text: 'Premium', imagePath: '/assets/img/options/premium.jpg' },
-                        { text: 'Luxe', imagePath: '/assets/img/options/luxury.jpg' }
+                        { text: 'Luxe', imagePath: '/assets/img/options/luxe.jpg' }
                     ]
                 }
             }
@@ -114,40 +114,40 @@ async function main() {
                 text: "Quel type d'activités culturelles vous intéresse ?",
                 categoryId: cultureCat.id,
                 options: [
-                    { text: "Musées et expositions" },
-                    { text: "Théâtre et spectacles" },
-                    { text: "Concerts et festivals" },
-                    { text: "Sites historiques" }
+                    { text: "Musées et expositions", imagePath: '/assets/img/options/mus_es_et_expositions.jpg' },
+                    { text: "Théâtre et spectacles", imagePath: '/assets/img/options/th_tre_et_spectacles.jpg' },
+                    { text: "Concerts et festivals", imagePath: '/assets/img/options/concerts_et_festivals.jpg' },
+                    { text: "Sites historiques", imagePath: '/assets/img/options/sites_historiques.jpg' }
                 ]
             },
             {
                 text: "Quelles activités sportives préférez-vous ?",
                 categoryId: sportsCat.id,
                 options: [
-                    { text: "Sports nautiques" },
-                    { text: "Randonnée" },
-                    { text: "Vélo" },
-                    { text: "Escalade" }
+                    { text: "Sports nautiques", imagePath: '/assets/img/options/sports_nautiques.jpg' },
+                    { text: "Randonnée", imagePath: '/assets/img/options/randonn_e.jpg' },
+                    { text: "Vélo", imagePath: '/assets/img/options/v_lo.jpg' },
+                    { text: "Escalade", imagePath: '/assets/img/options/escalade.jpg' }
                 ]
             },
             {
                 text: "Quelles expériences culinaires recherchez-vous ?",
                 categoryId: gastronomyCat.id,
                 options: [
-                    { text: "Restaurants gastronomiques" },
-                    { text: "Cuisine locale traditionnelle" },
-                    { text: "Street food" },
-                    { text: "Bars et cafés" }
+                    { text: "Restaurants gastronomiques", imagePath: '/assets/img/options/restaurants_gastronomiques.jpg' },
+                    { text: "Cuisine locale traditionnelle", imagePath: '/assets/img/options/cuisine_locale_traditionnelle.jpg' },
+                    { text: "Street food", imagePath: '/assets/img/options/street_food.jpg' },
+                    { text: "Bars et cafés", imagePath: '/assets/img/options/bars_et_caf_s.jpg' }
                 ]
             },
             {
                 text: "Quel type d'environnement préférez-vous ?",
                 categoryId: natureCat.id,
                 options: [
-                    { text: "Plages" },
-                    { text: "Parcs et jardins" },
-                    { text: "Montagnes" },
-                    { text: "Forêts" }
+                    { text: "Plages", imagePath: '/assets/img/options/plages.jpg' },
+                    { text: "Parcs et jardins", imagePath: '/assets/img/options/parcs_et_jardins.jpg' },
+                    { text: "Montagnes", imagePath: '/assets/img/options/montagnes.jpg' },
+                    { text: "Forêts", imagePath: '/assets/img/options/for_ts.jpg' }
                 ]
             }
         ];

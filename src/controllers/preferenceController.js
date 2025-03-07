@@ -25,7 +25,7 @@ exports.getPreferencesForm = async (req, res) => {
         const allQuestions = await prisma.question.findMany({
             include: {
                 options: {
-                    take: 3, // Limite à 3 options par question
+                    take: 3, // Limite stricte à 3 options par question
                     orderBy: {
                         id: 'asc'
                     }
@@ -37,14 +37,80 @@ exports.getPreferencesForm = async (req, res) => {
             }
         });
 
+        // Fonction pour mapper les noms d'options aux noms de fichiers existants
+        const getImagePath = (optionText) => {
+            // Table de correspondance pour les cas spéciaux
+            const specialCases = {
+                'Économique': '_conomique.jpg',
+                'Élégante': '_l_gante.jpg',
+                'Bars et cafés': 'bars_et_caf_s.jpg',
+                'Bien-être & détente': 'bien_tre_d_tente.jpg',
+                'Branchée': 'branch_e.jpg',
+                'Cuisine française': 'cuisine_fran_aise.jpg',
+                'Cuisine méditerranéenne': 'cuisine_m_diterran_enne.jpg',
+                'Décontractée': 'd_contract_e.jpg',
+                'Forêts': 'for_ts.jpg',
+                'Musées et expositions': 'mus_es_et_expositions.jpg',
+                'Randonnée': 'randonn_e.jpg',
+                'Théâtre et spectacles': 'th_tre_et_spectacles.jpg',
+                'Vélo': 'v_lo.jpg'
+            };
+            
+            // Vérifier si c'est un cas spécial
+            if (specialCases[optionText]) {
+                return `/assets/img/options/${specialCases[optionText]}`;
+            }
+            
+            // Sinon, utiliser la normalisation standard
+            const normalizedText = optionText.toLowerCase()
+                .replace(/\s+/g, '_')                // Remplacer les espaces par des underscores
+                .normalize("NFD")                    // Décomposer les caractères accentués
+                .replace(/[\u0300-\u036f]/g, "");   // Supprimer les accents
+                
+            return `/assets/img/options/${normalizedText}.jpg`;
+        };
+
+        // Vérifier si Cloudinary est activé
+        const useCloudinary = process.env.USE_CLOUDINARY === 'true';
+        const cloudinaryBaseUrl = process.env.CLOUDINARY_BASE_URL;
+
+        // Fonction pour obtenir le chemin Cloudinary si activé
+        const getCloudinaryPath = (localPath) => {
+            if (!useCloudinary || !cloudinaryBaseUrl) return localPath;
+            
+            // Extraire le nom du fichier du chemin local
+            const fileName = localPath.split('/').pop();
+            
+            // S'assurer que l'URL Cloudinary n'a pas de double slash
+            // Supprimer le slash final de cloudinaryBaseUrl s'il existe
+            const baseUrl = cloudinaryBaseUrl.endsWith('/') 
+                ? cloudinaryBaseUrl.slice(0, -1) 
+                : cloudinaryBaseUrl;
+                
+            // Construire le chemin Cloudinary
+            return `${baseUrl}/options/${fileName}`;
+        };
+        
         // Ajouter les images pour chaque option
         const questionsWithImages = allQuestions.map(question => ({
             ...question,
-            options: question.options.map(option => ({
-                ...option,
-                imagePath: option.imagePath || `/assets/img/options/${option.text.toLowerCase().replace(/\s+/g, '_')}.jpg`
-            }))
+            options: question.options.map(option => {
+                const localPath = option.imagePath || getImagePath(option.text);
+                const finalPath = useCloudinary ? getCloudinaryPath(localPath) : localPath;
+                return {
+                    ...option,
+                    imagePath: finalPath
+                };
+            })
         }));
+        
+        // Debug: Afficher les chemins d'images pour vérification
+        console.log("Chemins d'images générés:");
+        questionsWithImages.forEach(question => {
+            question.options.forEach(option => {
+                console.log(`Option: "${option.text}" -> Image: ${option.imagePath}`);
+            });
+        });
 
         res.render("pages/preferences.twig", {
             questions: questionsWithImages,
@@ -103,6 +169,14 @@ exports.savePreferences = async (req, res) => {
                     message: "Vous ne pouvez sélectionner que 3 options maximum par question"
                 });
             }
+        }
+
+        // Vérifier le nombre total de préférences
+        if (preferenceIds.length > questions.length * 3) {
+            return res.status(400).json({
+                success: false,
+                message: "Le nombre total de préférences dépasse la limite autorisée"
+            });
         }
 
         // Supprimer les anciennes préférences

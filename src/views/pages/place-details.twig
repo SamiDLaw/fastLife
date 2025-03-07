@@ -1,22 +1,221 @@
-<div id="reviews">
-	<h3>Avis</h3>
-	{% for review in reviews %}
-		<div class="review">
-			<p>{{ review.content }}</p>
-			<p>Note:
-				{{ review.rating }}/5</p>
-		</div>
-	{% endfor %}
-</div>
+{% extends "../layouts/base.twig" %}
 
-<form id="review-form">
-	<textarea name="content" placeholder="Votre avis"></textarea>
-	<select name="rating">
-		<option value="1">1 étoile</option>
-		<option value="2">2 étoiles</option>
-		<option value="3">3 étoiles</option>
-		<option value="4">4 étoiles</option>
-		<option value="5">5 étoiles</option>
-	</select>
-	<button type="submit">Soumettre l'avis</button>
-</form>
+{% block title %}
+	<title>{{ place.name }} | FastLife</title>
+{% endblock %}
+
+{% block style %}
+	{{ parent() }}
+	<link rel="stylesheet" href="/css/place-details.css?v={{ 'now'|date('YmdHis') }}">
+	<link rel="stylesheet" href="/css/map.css?v={{ 'now'|date('YmdHis') }}">
+	<link rel="stylesheet" href="/css/chatbot.css?v={{ 'now'|date('YmdHis') }}">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
+{% endblock %}
+
+{% block main %}
+	<!-- Bouton GPT -->
+	<button class="gpt-button">
+		<span>GPT</span>
+		<small>Assistant IA</small>
+	</button>
+
+	<!-- Chatbot -->
+	<div class="chatbot-container">
+		<div class="chatbot-header">
+			<h3>Assistant FastLife</h3>
+			<button class="close-chatbot">
+				<i class="fas fa-times"></i>
+			</button>
+		</div>
+		<div class="chatbot-messages"></div>
+		<div class="chatbot-input-container">
+			<input type="text" class="chatbot-input" placeholder="Posez votre question...">
+			<button class="chatbot-send">
+				<i class="fas fa-paper-plane"></i>
+			</button>
+		</div>
+	</div>
+
+	<div class="place-header">
+		<div class="place-header-bg" style="background-image: url('{{ place.imagePath|default('/images/placeholder.jpg') }}');"></div>
+		<div class="place-header-overlay"></div>
+		<div class="place-header-content">
+			<h1>{{ place.name }}</h1>
+			<p>{{ place.category }}</p>
+		</div>
+	</div>
+
+	<div class="container">
+		<div class="place-content">
+			<div class="place-main">
+				<img src="{{ place.imagePath|default('/images/placeholder.jpg') }}" alt="{{ place.name }}" class="place-image">
+				<div class="place-details">
+					<h2>À propos de {{ place.name }}</h2>
+					<div class="place-info">
+						<div class="place-info-item">
+							<i class="fas fa-map-marker-alt"></i>
+							<span>{{ place.address }}</span>
+						</div>
+						<div class="place-info-item">
+							<i class="fas fa-tag"></i>
+							<span>{{ place.category }}</span>
+						</div>
+						{% if place.price %}
+							<div class="place-info-item">
+								<i class="fas fa-euro-sign"></i>
+								<span>{{ place.price }}</span>
+							</div>
+						{% endif %}
+					</div>
+					<div class="place-description">
+						<p>{{ place.description }}</p>
+					</div>
+				</div>
+			</div>
+
+			<div class="place-sidebar">
+				<div class="place-map">
+					<h3>Localisation</h3>
+					<div id="place-map" class="place-map-container"></div>
+				</div>
+
+				<div class="place-hours">
+					<h3>Horaires d'ouverture</h3>
+					<ul class="hours-list">
+						<li><span>Lundi</span> <span>{{ place.hours.monday|default('Fermé') }}</span></li>
+						<li><span>Mardi</span> <span>{{ place.hours.tuesday|default('Fermé') }}</span></li>
+						<li><span>Mercredi</span> <span>{{ place.hours.wednesday|default('Fermé') }}</span></li>
+						<li><span>Jeudi</span> <span>{{ place.hours.thursday|default('Fermé') }}</span></li>
+						<li><span>Vendredi</span> <span>{{ place.hours.friday|default('Fermé') }}</span></li>
+						<li><span>Samedi</span> <span>{{ place.hours.saturday|default('Fermé') }}</span></li>
+						<li><span>Dimanche</span> <span>{{ place.hours.sunday|default('Fermé') }}</span></li>
+					</ul>
+				</div>
+
+				<div class="place-contact">
+					<h3>Contact</h3>
+					{% if place.phone %}
+						<div class="contact-item">
+							<i class="fas fa-phone"></i>
+							<a href="tel:{{ place.phone }}">{{ place.phone }}</a>
+						</div>
+					{% endif %}
+					{% if place.email %}
+						<div class="contact-item">
+							<i class="fas fa-envelope"></i>
+							<a href="mailto:{{ place.email }}">{{ place.email }}</a>
+						</div>
+					{% endif %}
+					{% if place.website %}
+						<div class="contact-item">
+							<i class="fas fa-globe"></i>
+							<a href="{{ place.website }}" target="_blank">Site web</a>
+						</div>
+					{% endif %}
+				</div>
+			</div>
+		</div>
+
+		<div id="reviews">
+			<h3>Avis ({{ reviews|length }})</h3>
+			{% if reviews|length > 0 %}
+				{% for review in reviews %}
+					<div class="review">
+						<div class="review-header">
+							<div class="review-author">{{ review.author|default('Utilisateur anonyme') }}</div>
+							<div class="review-date">{{ review.date|date("d/m/Y")|default('') }}</div>
+						</div>
+						<div class="review-rating">
+							{% for i in 1..5 %}
+								<i class="fas fa-star{% if i > review.rating %} far{% endif %}"></i>
+							{% endfor %}
+						</div>
+						<div class="review-content">{{ review.content }}</div>
+					</div>
+				{% endfor %}
+			{% else %}
+				<p>Aucun avis pour le moment. Soyez le premier à donner votre avis !</p>
+			{% endif %}
+		</div>
+
+		<form id="review-form">
+			<h3>Laisser un avis</h3>
+			<textarea name="content" placeholder="Partagez votre expérience..."></textarea>
+			<select name="rating">
+				<option value="">Sélectionnez une note</option>
+				<option value="1">1 étoile</option>
+				<option value="2">2 étoiles</option>
+				<option value="3">3 étoiles</option>
+				<option value="4">4 étoiles</option>
+				<option value="5">5 étoiles</option>
+			</select>
+			<button type="submit">Soumettre l'avis</button>
+		</form>
+
+		{% if similarPlaces|default([])|length > 0 %}
+			<div class="similar-places">
+				<h2>Lieux similaires</h2>
+				<div class="similar-places-grid">
+					{% for similarPlace in similarPlaces %}
+						<div class="similar-place-card">
+							<img src="{{ similarPlace.imagePath|default('/images/placeholder.jpg') }}" alt="{{ similarPlace.name }}" class="similar-place-image">
+							<div class="similar-place-content">
+								<div class="similar-place-title">{{ similarPlace.name }}</div>
+								<div class="similar-place-category">{{ similarPlace.category }}</div>
+								<div class="similar-place-rating">
+									{% for i in 1..5 %}
+										<i class="fas fa-star{% if i > similarPlace.rating %} far{% endif %}"></i>
+									{% endfor %}
+								</div>
+							</div>
+						</div>
+					{% endfor %}
+				</div>
+			</div>
+		{% endif %}
+	</div>
+{% endblock %}
+
+{% block script %}
+	<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+	<script src="/js/chatbot.js?v={{ 'now'|date('YmdHis') }}"></script>
+	<script>
+		document.addEventListener('DOMContentLoaded', function() {
+			// Initialisation de la carte
+			const mapElement = document.getElementById('place-map');
+			if (mapElement) {
+				const map = L.map('place-map').setView([{{ place.latitude|default(48.8566) }}, {{ place.longitude|default(2.3522) }}], 15);
+
+				L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+					attribution: '© OpenStreetMap contributors'
+				}).addTo(map);
+
+				L.marker([{{ place.latitude|default(48.8566) }}, {{ place.longitude|default(2.3522) }}])
+					.addTo(map)
+					.bindPopup("{{ place.name }}")
+					.openPopup();
+			}
+
+			// Gestion du formulaire d'avis
+			const reviewForm = document.getElementById('review-form');
+			if (reviewForm) {
+				reviewForm.addEventListener('submit', function(e) {
+					e.preventDefault();
+					const content = this.querySelector('textarea[name="content"]').value;
+					const rating = this.querySelector('select[name="rating"]').value;
+
+					if (!content || !rating) {
+						alert('Veuillez remplir tous les champs');
+						return;
+					}
+
+					// Envoi de l'avis (à implémenter)
+					console.log('Envoi de l\'avis:', { content, rating, placeId: '{{ place.id }}' });
+					alert('Merci pour votre avis !'); // À remplacer par une meilleure UI
+					this.reset();
+				});
+			}
+		});
+	</script>
+{% endblock %}

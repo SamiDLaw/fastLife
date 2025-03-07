@@ -1,24 +1,57 @@
+:root {
+  --primary-color: #007bff;
+  --primary-hover: #0056b3;
+  --text-color: #333;
+  --text-secondary: #666;
+  --border-color: #ddd;
+  --error-color: #e53935;
+  --background-color: white;
+  --shadow-color: rgba(0, 0, 0, 0.2);
+  --overlay-color: rgba(0, 0, 0, 0.5);
+}
+
 .auth-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: var(--overlay-color);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1001;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .auth-container {
-  background-color: white;
+  background-color: var(--background-color);
   border-radius: 10px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 20px var(--shadow-color);
   overflow: hidden;
-  width: 800px;
-  height: 500px;
+  width: 90%;
+  max-width: 800px;
+  height: auto;
+  min-height: 500px;
   display: flex;
+  flex-direction: row;
+  transition: all 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .auth-container {
+    flex-direction: column;
+    max-width: 400px;
+    min-height: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-container {
+    width: 95%;
+    border-radius: 8px;
+  }
 }
 
 .left-side {
@@ -31,7 +64,22 @@
   justify-content: center;
   align-items: center;
   color: white;
-  padding: 20px;
+  padding: 30px 20px;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .left-side {
+    padding: 20px;
+    min-height: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .left-side {
+    padding: 15px;
+    min-height: 150px;
+  }
 }
 
 .right-side {
@@ -42,14 +90,48 @@
   justify-content: center;
 }
 
+@media (max-width: 768px) {
+  .right-side {
+    padding: 30px;
+  }
+}
+
+@media (max-width: 480px) {
+  .right-side {
+    padding: 20px;
+  }
+}
+
 h2 {
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 10px;
+  font-size: 24px;
+}
+
+@media (max-width: 480px) {
+  h2 {
+    font-size: 20px;
+    margin-bottom: 8px;
+  }
 }
 
 p {
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 30px;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  p {
+    margin-bottom: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  p {
+    font-size: 14px;
+    margin-bottom: 15px;
+  }
 }
 
 form {
@@ -61,46 +143,119 @@ form {
   margin-bottom: 20px;
 }
 
+@media (max-width: 768px) {
+  .form-group {
+    margin-bottom: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .form-group {
+    margin-bottom: 12px;
+  }
+}
+
 label {
   display: block;
   margin-bottom: 5px;
-  color: #333;
+  color: var(--text-color);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+@media (max-width: 480px) {
+  label {
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
 }
 
 input[type="email"],
 input[type="password"] {
   width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
+  padding: 12px 10px;
+  border: 1px solid var(--border-color);
   border-radius: 5px;
+  font-size: 16px;
+  transition: border-color 0.3s ease;
+  box-sizing: border-box;
+}
+
+input[type="email"]:focus,
+input[type="password"]:focus {
+  border-color: var(--primary-color);
+  outline: none;
+}
+
+@media (max-width: 480px) {
+  input[type="email"],
+  input[type="password"] {
+    padding: 10px 8px;
+    font-size: 14px;
+  }
 }
 
 button {
-  background-color: #007bff;
+  background-color: var(--primary-color);
   color: white;
   border: none;
   padding: 12px;
   border-radius: 5px;
   cursor: pointer;
   font-size: 16px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 button:hover {
-  background-color: #0056b3;
+  background-color: var(--primary-hover);
+  transform: translateY(-2px);
 }
+
+button:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 480px) {
+  button {
+    padding: 10px;
+    font-size: 14px;
+  }
+}
+
+
 
 .register-link {
   text-align: center;
   margin-top: 20px;
+  font-size: 14px;
+}
+
+@media (max-width: 480px) {
+  .register-link {
+    margin-top: 15px;
+    font-size: 13px;
+  }
 }
 
 .register-link a {
-  color: #007bff;
+  color: var(--primary-color);
   text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.register-link a:hover {
+  text-decoration: underline;
 }
 
 .error {
-  color: red;
+  color: var(--error-color);
   font-size: 14px;
   margin-top: 5px;
+  transition: all 0.3s ease;
+}
+
+@media (max-width: 480px) {
+  .error {
+    font-size: 12px;
+  }
 }

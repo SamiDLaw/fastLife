@@ -1,3 +1,16 @@
+:root {
+  --primary-color: #0095f6;
+  --primary-hover: #0086e0;
+  --text-color: #262626;
+  --text-secondary: #666;
+  --border-color: #dbdbdb;
+  --border-focus: #a8a8a8;
+  --error-color: #e53935;
+  --background-color: white;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --overlay-color: rgba(0, 0, 0, 0.5);
+}
+
 /* Fond de carte en arrière-plan */
 #map-background {
   position: fixed;
@@ -15,10 +28,12 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: var(--overlay-color);
   display: flex;
   justify-content: center;
   align-items: center;
   font-family: "Roboto", sans-serif;
-  z-index: 1001; /* Assurez-vous que c'est en dessous de .auth-container */
+  z-index: 1001;
+  padding: 20px;
+  box-sizing: border-box;
 }
